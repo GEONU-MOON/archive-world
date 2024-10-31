@@ -6,7 +6,7 @@
   padding: 50px;
   border: 1px solid #ccc;
   border-radius: 10px;
-  background-color: #b0b8d1;
+  background-color: #e2ded8;
 }
 
 #loginForm .header {
@@ -22,10 +22,9 @@
 }
 
 #loginForm h2 {
-  margin-top: 100px;
   text-align: center;
   color: black;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
 }
 
 #loginForm label {
@@ -37,8 +36,8 @@
 }
 
 #loginForm label::after {
-  content: ' *';
-  color: rgb(184, 13, 13); 
+  content: " *";
+  color: rgb(184, 13, 13);
   right: -15px;
   top: 0;
 }
@@ -52,15 +51,16 @@
 
 #loginForm button {
   width: 30%;
-  align-self:last baseline;
+  align-self: last baseline;
   padding: 10px;
   border: none;
   border-radius: 5px;
-  background-color: #F39C12;
+  background-color: #b0c4de;
   color: black;
   cursor: pointer;
 }
 
 #loginForm button:hover {
-  background-color: #D35400;
+  background-color: #a2b5cd;
+  color: white;
 }

@@ -7,12 +7,12 @@ function HomeComponent() {
     },
     {
       content: "다이어리 내용2",
-      author: "수민",
+      author: "건우",
       timestamp: "2024-08-07 12:20",
     },
     {
       content: "다이어리 내용3",
-      author: "수민",
+      author: "건우",
       timestamp: "2024-08-08 18:45",
     },
     {

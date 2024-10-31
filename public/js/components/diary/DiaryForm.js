@@ -17,7 +17,7 @@ function DiaryForm() {
   const component = `
   <div class="diary-form-container">
     <div class="diary-post">
-      <button id="btn-diary-post" onclick="postDiary()">🖉글쓰기</button>
+      <button id="btn-diary-post" onclick="postDiary()">글쓰기✏️</button>
     </div>
     <hr />
     <div id="toolbar">

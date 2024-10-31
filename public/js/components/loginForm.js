@@ -39,8 +39,8 @@ function loginForm() {
   const content = `
     <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="header">
-            <img src="/resource/images/Doori-world.png" alt="Doori World Logo">
-            <h2>Doori World</h2>
+            <img src="/resource/images/pretzel.svg" alt="Pretzel World Logo">
+            <h2>Pretzel World</h2>
         </div>
         <label for="userId">아이디</label>
         <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요." required />
