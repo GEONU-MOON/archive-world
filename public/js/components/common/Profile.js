@@ -55,6 +55,7 @@ function handleUploadProfile() {
   input.onchange = async function () {
     const file = input.files[0];
     if (file) {
+      console.log("Selected file:", file);
       const formData = new FormData();
       formData.append("image", file);
 
@@ -67,18 +68,17 @@ function handleUploadProfile() {
         if (response.ok) {
           const data = await response.json();
           alert("프로필 사진이 성공적으로 업로드되었습니다.");
-
           const newAvatarUrl = data.imageURL;
+
           if (newAvatarUrl) {
             document.querySelector(".profile-photo img").src = `${newAvatarUrl}?t=${new Date().getTime()}`;
-          } else {
-            // console.error("user_avatar 값이 없습니다.");
           }
         } else {
+          console.warn("Upload failed, response status:", response.status);
           alert("프로필 사진 업로드에 실패했습니다.");
         }
       } catch (error) {
-        // console.error("업로드 중 오류 발생:", error);
+        console.error("Error uploading profile picture:", error);
         alert("프로필 사진 업로드 중 오류가 발생했습니다.");
       }
     }
@@ -129,7 +129,7 @@ function Profile() {
   };
 
   const text = "🔥 취준";
-  const textIntro = "웰컴...<br/>To..두리..<br/>월드 S2";
+  const textIntro = "웰컴...<br/>To..프ㄹㅔ첼..<br/>월드 S2";
   const music = "와르르 - 콜드(Colde)";
   const content = `
     <div class="profile-photo">

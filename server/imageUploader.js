@@ -20,35 +20,29 @@ const imageUploader = multer({
 
 async function uploadToS3(req, res, next) {
   const file = req.file;
-
   if (!file) {
+    console.warn("No file uploaded.");
     return res.status(400).send("No file uploaded.");
-  }
-
-  const uploadDirectory = req.query.directory ?? "";
-  const reqExtension = path.extname(file.originalname);
-
-  if (!allowedExtensions.includes(reqExtension)) {
-    return res.status(400).send("Unsupported file format.");
   }
 
   const params = {
     Bucket: process.env.AWS_S3_BUCKET,
-    Key: `${uploadDirectory}/${Date.now()}_${file.originalname}`,
+    Key: `profile/${Date.now()}_${file.originalname}`,
     Body: file.buffer,
-    ACL: "public-read-write",
+    //ACL: "public-read", // 권한 설정 확인
     ContentType: file.mimetype,
   };
 
   try {
+    console.log("Uploading to S3 with params:", params);
     const command = new PutObjectCommand(params);
     await S3.send(command);
-
+    console.log("Upload to S3 successful:", params.Key);
     const imageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
     req.imageUrl = imageUrl;
-
-    next(); // Proceed to the next middleware/route handler
+    next();
   } catch (err) {
+    console.error("Error during S3 upload:", err); // 에러 메시지 출력
     return res.status(500).send("Error uploading file.");
   }
 }
