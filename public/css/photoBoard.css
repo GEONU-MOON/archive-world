@@ -1,0 +1,162 @@
+.photo-board-container {
+  width: 90%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.photo-content-area {
+  overflow-y: auto;
+  max-height: 85%;
+  padding-right: 20px;
+}
+
+.photo-post {
+  display: flex;
+  justify-content: end;
+  margin-top: 5%;
+  width: 100%;
+  margin-bottom: 3%;
+}
+
+.btn-photo-post {
+  height: 30px;
+  width: 150px;
+  background-color: white;
+  font-size: 18px;
+  border-radius: 5px;
+  line-height: 3px;
+  text-align: center;
+  border: 0.5px solid black;
+  box-shadow: 1px 1px 1px gray;
+}
+
+.photo-title {
+  background-color: #a8cbce;
+  font-size: 27px;
+  text-align: center;
+  padding: 1%;
+}
+
+.photo-info {
+  display: flex;
+  background-color: #ebebeb;
+}
+
+.photo-write-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 85%;
+}
+
+.writer {
+  font-size: 18px;
+  padding: 1%;
+  margin-left: 2%;
+}
+
+.date {
+  font-size: 12px;
+  margin-left: 2%;
+  color: #9a9a9a;
+}
+
+.photo-edit-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 15%;
+}
+
+#btn-photo-edit,
+#btn-photo-remove {
+  border: none;
+  background-color: transparent;
+  font-size: 15px;
+  color: #9a9a9a;
+  padding: 8px 8px;
+}
+
+#btn-photo-edit {
+  border-right: 2px solid #9a9a9a;
+}
+
+#btn-photo-edit:hover,
+#btn-photo-remove:hover {
+  color: black;
+}
+
+.photo-gallery {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 1%;
+  gap: 20px;
+}
+
+.photo-image {
+  margin-top: 3%;
+  width: 30%;
+  height: auto;
+}
+
+.photo-content {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.photo-comment-container {
+  margin-top: 3%;
+}
+
+.form-photo-comment {
+  display: flex;
+  justify-content: space-around;
+  background-color: #d9d9d9;
+  padding: 5px;
+  font-size: 18px;
+}
+
+.form-photo-comment label {
+  display: flex;
+  align-items: center;
+}
+
+.form-photo-comment input {
+  width: 80%;
+}
+
+.form-photo-comment button {
+  height: 30px;
+  width: 60px;
+  font-size: 18px;
+  background-color: white;
+  border-radius: 5px;
+  border: 0.5px solid black;
+  box-shadow: 1px 1px 1px gray;
+}
+
+.form-photo-comment button:active {
+  background-color: #d9d9d9;
+  box-shadow: inset 2px 2px gray;
+}
+
+.photo-comment-wrapper {
+  border-top: 1px solid gray;
+  margin-top: 10px;
+}
+
+.photo-comment-info {
+  background-color: #d9d9d9;
+  padding: 5px 10px 5px 10px;
+}
+
+#photo-comment-writeAt {
+  color: #5f5f5f;
+}
+
+.photo-comment-content {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}

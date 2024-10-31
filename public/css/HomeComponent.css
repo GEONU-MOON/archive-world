@@ -1,0 +1,106 @@
+.home-container {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.top-section {
+  display: flex;
+  width: 90%;
+  margin: 0 auto;
+  justify-content: space-around;
+  align-items: flex-start;
+}
+
+.Diary-section,
+.home-photo-section {
+  flex: 1;
+  margin-top: 3%;
+}
+
+.Diary-title {
+  width: 90%;
+  color: #5dbad1;
+  font-size: 32px;
+  border-bottom: 5px solid #ccc;
+}
+
+.diary-item {
+  width: 90%;
+  border-bottom: 1px solid black;
+  padding: 10px 0;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.diary-author {
+  font-size: 12px;
+  color: #666;
+  margin-left: auto;
+}
+
+.home-photo-title {
+  color: #5dbad1;
+  font-size: 32px;
+  border-bottom: 5px solid #ccc;
+}
+
+.home-photo-gallery {
+  margin: 3%;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.home-photo-gallery img {
+  height: 100px;
+  width: 100px;
+}
+
+.miniroom-section {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.miniroom-title {
+  color: #5dbad1;
+  font-size: 32px;
+  width: 100%;
+  border-bottom: 5px solid #ccc;
+  padding: 5px 0;
+}
+
+.miniroom-image img {
+  height: auto;
+  max-height: 290px;
+  width: 100%;
+}
+
+.visitor-section {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.visitor-title {
+  color: #5dbad1;
+  font-size: 32px;
+  border-bottom: 5px solid #ccc;
+  padding: 5px 0;
+}
+
+.visitor-comment-item {
+  border-bottom: 2px solid #ccc;
+  padding: 10px 0;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-timestamp {
+  font-size: 12px;
+  color: #888;
+  text-align: right;
+}

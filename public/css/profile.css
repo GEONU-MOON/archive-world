@@ -1,0 +1,136 @@
+.profile-photo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.profile-image {
+  width: 210px;
+  height: 210px;
+  object-fit: cover;
+}
+
+#btn-photo-upload {
+  width: 150px;
+  padding: 5px;
+  border-radius: 10px;
+  background-color: white;
+}
+
+.intro-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#intro-state {
+  text-align: center;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 2px 0px 2px 0px;
+  margin-top: 20px;
+}
+
+#intro-text {
+  font-size: 30px;
+}
+
+#intro-state span {
+  color: #16b6b6;
+}
+
+.music-display {
+  border-radius: 5px;
+  border: 1px solid black;
+  height: 60px;
+  margin-top: 10px;
+  align-items: center;
+  padding-left: 5px;
+  padding-top: 5px;
+}
+
+@keyframes flowText {
+  0% {
+    transform: translateX(170%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+#music-container {
+  display: inline-block;
+  width: 90%;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+#music-animation {
+  display: inline-block;
+  animation: flowText 10s linear infinite paused;
+}
+
+#music-animation.running {
+  animation-play-state: running;
+}
+
+.music-btn-wrapper {
+  height: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.music-btn {
+  border: none;
+  background-color: white;
+  font-size: 15px;
+}
+
+#btn-music-start {
+  display: none;
+}
+
+#btn-music-stop {
+  font-weight: bold;
+}
+
+.history-wrapper {
+  position: absolute;
+  width: 90%;
+  margin-bottom: 0.5%;
+}
+
+.history-title {
+  border-bottom: 1px solid gray;
+  padding: 2px 2px;
+}
+
+.history-content {
+  margin-top: 2%;
+}
+
+.history a {
+  display: flex;
+  align-items: cetner;
+  text-decoration: none;
+}
+
+.history a:link,
+.history a:visited {
+  color: black;
+  text-decoration: none;
+}
+
+.history a:hover {
+  color: #5dbad1;
+}
+
+.history a > span {
+  line-height: 30px;
+  align-items: center;
+  margin-left: 5px;
+}

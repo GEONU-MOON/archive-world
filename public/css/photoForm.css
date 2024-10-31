@@ -1,0 +1,95 @@
+.photo-form-container {
+  width: 85%;
+  height: 100%; 
+  margin: 0 auto;
+}
+
+.photo-board {
+  display: flex;
+  justify-content: end;
+  margin-top: 5%;
+  width: 100%;
+  margin-bottom: 3%;
+}
+
+.btn-photo-board {
+  height: 30px;
+  width: 150px;
+  background-color: white;
+  font-size: 18px;
+  border-radius: 5px;
+  line-height: 3px;
+  text-align: center;
+  border: 0.5px solid black;
+  box-shadow: 1px 1px 1px gray;
+}
+
+.photo-form-group {
+  margin-bottom: 20px;
+  width: 98%;
+}
+
+.photo-form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.photo-form-group input[type="text"],
+.photo-form-group input[type="file"],
+.photo-form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#toolbar {
+  font-size: 16px;
+  padding: 5px;
+  border: 1px solid #cccccc;
+  border-bottom: none;
+  align-items: center;
+}
+
+#toolbar button {
+  border: none;
+  background-color: transparent;
+}
+
+#toolbar button:hover {
+  color: #d9d9d9;
+}
+
+#toolbar label {
+  font-size: 13px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+#color-select option {
+  font-weight: bold;
+}
+
+.tool {
+  display: flex;
+  justify-content: space-between;
+}
+
+#photo-editor {
+  width: 100%; 
+  height: 350px;
+  border: 1px solid #ccc; 
+  padding: 10px; 
+  overflow-y: auto; 
+  box-sizing: border-box; 
+}
+
+#editor:focus {
+  outline: none;
+}
+
+.submit-btn {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 3%;
+}

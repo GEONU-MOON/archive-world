@@ -1,0 +1,66 @@
+#loginForm {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 50px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #b0b8d1;
+}
+
+#loginForm .header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#loginForm img {
+  width: 40%;
+  height: auto;
+  margin-right: 20px;
+}
+
+#loginForm h2 {
+  margin-top: 100px;
+  text-align: center;
+  color: black;
+  font-family: 'Arial', sans-serif;
+}
+
+#loginForm label {
+  margin-bottom: 10px;
+  margin-top: 10px;
+  font-weight: bold;
+  color: black;
+  text-align: start;
+}
+
+#loginForm label::after {
+  content: ' *';
+  color: rgb(184, 13, 13); 
+  right: -15px;
+  top: 0;
+}
+
+#loginForm input {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#loginForm button {
+  width: 30%;
+  align-self:last baseline;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #F39C12;
+  color: black;
+  cursor: pointer;
+}
+
+#loginForm button:hover {
+  background-color: #D35400;
+}
