@@ -1,3 +1,4 @@
+
 const setDiaryLinkToToday = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -21,10 +22,10 @@ async function MainComponent() {
             <div class="intro">열심히 개발ㅎrㅈr...S2</div>
             <div class="outro">Hello, Pretzel World!</div>
           </div>
-          <div class="content-area" id="content-area"> 
+          <div class="content-area"> 
             <div class="white-box"></div>
             <div class="tab-container">
-              <div class="active-tab-item">
+              <div class="active-tab-item" >
                 <a href="/" data-link>홈</a>
               </div>
               <div class="tab-item">
@@ -34,10 +35,9 @@ async function MainComponent() {
                 <a href="/photo/board" data-link>포토</a>
               </div>
               <div class="tab-item">
-                <a href="/visitor" data-link>방명록</a>
+                <a href="/visitor"data-link>방명록</a>
               </div>
             </div>
-            <div class="tab-content"></div>
           </div>
         </div>
       </div>
@@ -49,23 +49,6 @@ async function MainComponent() {
   await loadComponent("/js/components/common/Profile.js");
   const profileContent = document.querySelector(".profile");
   profileContent.innerHTML = Profile();
-
-  document.querySelector("#diary-link").addEventListener("click", async event => {
-    event.preventDefault(); // 기본 링크 이동 방지
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    const formattedDate = `${year}${month}${day}`;
-  
-    // 다이어리 콘텐츠를 업데이트할 위치를 찾음
-    const diaryWrapper = document.querySelector(".diary-wrapper");
-    diaryWrapper.innerHTML = await DiaryDate(formattedDate); // 기존 내용을 교체하여 중복 방지
-  });
-  
-  
-  
 }
 
 MainComponent();
-
