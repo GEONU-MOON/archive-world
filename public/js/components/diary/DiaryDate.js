@@ -68,12 +68,23 @@ function renderNextMonth(year, month) {
   calendarContainer.innerHTML = getDateTemplate(newYear, newMonth, 1);
 }
 
-function changeDate(event) {
-  // todo: 클릭한 날짜 게시물 get 요청
-  console.log("click date: ", event.target.textContent);
-}
 
 const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+// 날짜 변경 시 요청을 보내는 함수
+async function changeDate(event) {
+  const selectedDate = event.target.textContent.padStart(2, "0"); // 날짜를 두 자리로 맞춤
+  const year = document.querySelector("#month span").textContent.split(".")[0];
+  const month = document.querySelector("#month span").textContent.split(".")[1].padStart(2, "0");
+
+  // 포맷된 날짜를 생성 (예: "20241101")
+  const formattedDate = `${year}${month}${selectedDate}`;
+
+  // 다이어리 내용을 새로 불러와서 화면에 렌더링
+  const diaryContent = await DiaryDate(formattedDate);
+  document.querySelector(".diary-wrapper").innerHTML = diaryContent;
+}
+
 
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
