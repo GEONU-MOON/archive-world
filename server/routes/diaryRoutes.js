@@ -28,15 +28,19 @@ router.post("/write", async (req, res) => {
 // 특정 날짜의 다이어리 및 댓글 조회 엔드포인트
 router.get("/:year/:month/:day", async (req, res) => {
   try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
-
     const { year, month, day } = req.params;
-    const date = new Date(year, month - 1, day);
 
-    const diary = await Diary.findOne({ user_id: currentUser.user_id, date });
+    // 선택한 날짜의 시작과 끝을 설정하여 범위 검색
+    const startDate = new Date(year, month - 1, day);
+    const endDate = new Date(year, month - 1, parseInt(day) + 1);
+
+    const diary = await Diary.findOne({
+      date: {
+        $gte: startDate,
+        $lt: endDate,
+      },
+    });
+
     if (diary) {
       res.status(200).json(diary); // 다이어리와 댓글 데이터 포함
     } else {

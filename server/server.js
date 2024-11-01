@@ -5,7 +5,7 @@ const app = express();
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
-const diaryRoutes = require("./routes/diary");
+const diaryRoutes = require("./routes/diaryRoutes");
 
 const PORT = process.env.PORT || 3000;
 
