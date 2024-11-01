@@ -92,34 +92,88 @@ async function DiaryDate(today) {
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const day = date.getDate().toString().padStart(2, "0");
 
-  let diaryEntry = null;
+  let diaryEntries = [];
 
   try {
     const diaryResponse = await fetch(`/api/diary/${year}/${month}/${day}`);
     if (diaryResponse.ok) {
-      const data = await diaryResponse.json();
-      diaryEntry = data[0] || null;
+      diaryEntries = await diaryResponse.json();
     }
   } catch (error) {
     console.error("Failed to fetch diary data:", error);
   }
 
-  const diaryId = diaryEntry ? diaryEntry._id : "N/A";
-  const diaryWriter = diaryEntry ? diaryEntry.user_id : "Unknown";
-  const diaryContent = diaryEntry ? diaryEntry.content.replace(/\n/g, "<br/>") : "No content available.";
-  const commentsHTML = diaryEntry && diaryEntry.comments.length > 0 
-    ? diaryEntry.comments.map((comment, idx) => `
-        <div class="diary-comment-wrapper" id="comment-${idx}">
-          <div class="diary-comment-info">
-            <span>no.${idx + 1} ${comment.user_id}</span>
-            <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
+  // 다이어리 항목이 없을 경우 표시할 메시지
+  if (diaryEntries.length === 0) {
+    return `
+      <div class="diary-wrapper">
+        <div>
+          <div class="calendar">
+            <div class="calendar-today">
+              <span>${month}.${day}</span>
+              <span>${daysOfWeek[date.getDay()]}</span>
+            </div>
+            <div class="calendar-container">
+              ${getDateTemplate(year, parseInt(month))}
+            </div>
           </div>
-          <div class="diary-comment-content">
-            <img src="/resource/images/profile.png" width=100 height=100 />
-            <div id="diary-comment-content">${comment.content}</div>
+          <hr />
+          <div class="diary-post">
+            <button id="btn-diary-post" onclick="navigateTo('/diary/post')">글쓰기✏️</button>
           </div>
-        </div>`).join("")
-    : "No comments for this diary entry";
+          <div class="diary-content-area">
+            <span style="color: gray;">해당 날짜에 작성된 다이어리가 없습니다.</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 다이어리 항목이 여러 개인 경우 각 항목을 순회하여 렌더링
+  const diaryEntriesHTML = diaryEntries.map((entry, entryIdx) => {
+    const diaryId = entry._id;
+    const diaryWriter = entry.user_id || "Unknown";
+    const diaryContent = entry.content.replace(/\n/g, "<br/>");
+
+    const commentsHTML = entry.comments && entry.comments.length > 0
+      ? entry.comments.map((comment, idx) => `
+          <div class="diary-comment-wrapper" id="comment-${entryIdx}-${idx}">
+            <div class="diary-comment-info">
+              <span>no.${idx + 1} ${comment.user_id}</span>
+              <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
+            </div>
+            <div class="diary-comment-content">
+              <img src="/resource/images/profile.png" width=100 height=100 />
+              <div id="diary-comment-content">${comment.content}</div>
+            </div>
+          </div>`
+        ).join("")
+      : ""; // 댓글이 없을 때는 빈 문자열 반환
+
+    return `
+      <div class="diary-container" id="diary-${diaryId}">
+        <div class="diary-info">
+          <span>${year}.${month}.${day}</span>
+          <span>${diaryWriter}</span>
+        </div>
+        <div class="diary-content">
+          <span>${diaryContent}</span>
+          <div class="diary-edit-wrapper">
+            <button id="btn-diary-edit">수정</button>
+            <button id="btn-diary-remove">삭제</button>
+          </div>
+        </div>
+        <div class="diary-comment-container">
+          <form class="form-diary-comment">
+            <label>댓글</label>
+            <input type="text" name="diary-comment" />
+            <button type="submit">확인</button>
+          </form>
+          ${commentsHTML}
+        </div>
+      </div>
+    `;
+  }).join("");
 
   const component = `
     <div class="diary-wrapper">
@@ -137,26 +191,8 @@ async function DiaryDate(today) {
         <div class="diary-post">
           <button id="btn-diary-post" onclick="navigateTo('/diary/post')">글쓰기✏️</button>
         </div>
-        <div class="diary-container" id="diary-${diaryId}">
-          <div class="diary-info">
-            <span>${year}.${month}.${day}</span>
-            <span>${diaryWriter}</span>
-          </div>
-          <div class="diary-content">
-            <span>${diaryContent}</span>
-            <div class="diary-edit-wrapper">
-              <button id="btn-diary-edit">수정</button>
-              <button id="btn-diary-remove">삭제</button>
-            </div>
-          </div>
-          <div class="diary-comment-container">
-            <form class="form-diary-comment">
-              <label>댓글</label>
-              <input type="text" name="diary-comment" />
-              <button type="submit">확인</button>
-            </form>
-            ${commentsHTML}
-          </div>
+        <div class="diary-content-area">
+          ${diaryEntriesHTML}
         </div>
       </div>
     </div>
