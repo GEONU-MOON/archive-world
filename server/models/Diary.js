@@ -36,6 +36,7 @@ const DiarySchema = new mongoose.Schema(
   },
   {
     versionKey: false,
+    timestamps: true, // createdAt과 updatedAt 필드를 자동으로 관리
   },
 );
 

@@ -51,6 +51,64 @@ router.get("/:year/:month/:day", async (req, res) => {
   }
 });
 
+// 다이어리 수정 엔드포인트
+router.put("/:diaryId/edit", async (req, res) => {
+  try {
+    const currentUser = await findUser(req.headers.authorization);
+    if (!currentUser) {
+      return res.status(403).json({ error: "Unauthorized user" });
+    }
+
+    const { diaryId } = req.params;
+    const { content } = req.body;
+
+    const diary = await Diary.findById(diaryId);
+    if (!diary) {
+      return res.status(404).json({ error: "Diary entry not found" });
+    }
+
+    if (diary.user_id !== currentUser.user_id) {
+      return res.status(403).json({ error: "You are not authorized to edit this diary" });
+    }
+
+    diary.content = content;
+    diary.updatedAt = new Date(); // updatedAt 갱신
+    await diary.save();
+
+    res.status(200).json({ message: "Diary entry updated successfully", updatedAt: diary.updatedAt });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update diary entry" });
+  }
+});
+
+// 다이어리 삭제 엔드포인트
+router.delete("/:diaryId/delete", async (req, res) => {
+  try {
+    const currentUser = await findUser(req.headers.authorization);
+    if (!currentUser) {
+      return res.status(403).json({ error: "Unauthorized user" });
+    }
+
+    const { diaryId } = req.params;
+
+    const diary = await Diary.findById(diaryId);
+    if (!diary) {
+      return res.status(404).json({ error: "Diary entry not found" });
+    }
+
+    // 작성자 확인
+    if (diary.user_id !== currentUser.user_id) {
+      return res.status(403).json({ error: "You are not authorized to delete this diary" });
+    }
+
+    // 다이어리 삭제
+    await Diary.findByIdAndDelete(diaryId);
+    res.status(200).json({ message: "Diary entry deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete diary entry" });
+  }
+});
+
 // 댓글 작성 엔드포인트
 router.post("/:diaryId/comment", async (req, res) => {
   try {
