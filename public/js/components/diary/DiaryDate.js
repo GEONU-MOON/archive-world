@@ -82,7 +82,7 @@ async function changeDate(event) {
 
   // 다이어리 내용을 새로 불러와서 화면에 렌더링
   const diaryContent = await DiaryDate(formattedDate);
-  document.querySelector(".diary-wrapper").innerHTML = diaryContent;
+  document.querySelector(".white-box").innerHTML = diaryContent;
 }
 
 
