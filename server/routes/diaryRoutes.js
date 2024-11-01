@@ -33,7 +33,7 @@ router.get("/:year/:month/:day", async (req, res) => {
     const startDate = new Date(year, month - 1, day);
     const endDate = new Date(year, month - 1, parseInt(day) + 1);
 
-    const diary = await Diary.findOne({
+    const diary = await Diary.find({
       date: {
         $gte: startDate,
         $lt: endDate,

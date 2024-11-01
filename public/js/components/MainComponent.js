@@ -24,7 +24,7 @@ async function MainComponent() {
           <div class="content-area"> 
             <div class="white-box"></div>
             <div class="tab-container">
-              <div class="active-tab-item" >
+              <div class="active-tab-item">
                 <a href="/" data-link>홈</a>
               </div>
               <div class="tab-item">
@@ -34,7 +34,7 @@ async function MainComponent() {
                 <a href="/photo/board" data-link>포토</a>
               </div>
               <div class="tab-item">
-                <a href="/visitor"data-link>방명록</a>
+                <a href="/visitor" data-link>방명록</a>
               </div>
             </div>
           </div>
@@ -48,6 +48,19 @@ async function MainComponent() {
   await loadComponent("/js/components/common/Profile.js");
   const profileContent = document.querySelector(".profile");
   profileContent.innerHTML = Profile();
+
+  // 다이어리 탭 클릭 시 DiaryDate 호출
+  document.querySelector("#diary-link").addEventListener("click", async event => {
+    event.preventDefault(); // 기본 링크 이동 방지
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const formattedDate = `${year}${month}${day}`;
+
+    // DiaryDate 호출하여 다이어리 데이터 렌더링
+    document.querySelector("#app").innerHTML = await DiaryDate(formattedDate);
+  });
 }
 
 MainComponent();
