@@ -14,6 +14,10 @@ const CommentSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { _id: false },
 );
@@ -36,7 +40,7 @@ const DiarySchema = new mongoose.Schema(
   },
   {
     versionKey: false,
-    timestamps: true, // createdAt과 updatedAt 필드를 자동으로 관리
+    timestamps: true, // 다이어리 전체의 createdAt과 updatedAt 필드를 자동으로 관리
   },
 );
 
