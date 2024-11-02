@@ -129,7 +129,7 @@ function Profile() {
   };
 
   const text = "🔥 취준";
-  const textIntro = "웰컴...<br/>To..프ㄹㅔ첼..<br/>월드 S2";
+  const textIntro = "ㄱI억ㄴrㄴI?<br/>너와 ㄴr의 <br/>ㅆr이월드..";
   const music = "와르르 - 콜드(Colde)";
   const content = `
     <div class="profile-photo">
@@ -157,7 +157,7 @@ function Profile() {
         <span class="history">
         <a href="https://github.com/GEONU-MOON/Pretzel-world">
           <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="30" height="30">
-          <span>Pretzel World Repository</span>
+          <span>Pretzel Repository</span>
         </a>
         <a href="https://github.com/GEONU-MOON">
           <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="30" height="30">
@@ -165,7 +165,7 @@ function Profile() {
         </a>
         <a href="https://blog.naver.com/soomini88">
           <img src="https://i.namu.wiki/i/QWVJJqQ2U_KE1A1BkDI5WwhFcIeQ4C9uGIgibUWPHr3ev65fv4JW9_Yd-66EVu_0TF8mMXIh9k_dnrv_DlLBCw.svg" alt="GitHub" width="30" height="30">
-          <span>soomin Blog</span>
+          <span>SOOMIN Blog</span>
         </a>
       </span>
       </div>
