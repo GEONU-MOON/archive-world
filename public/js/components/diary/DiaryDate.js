@@ -86,6 +86,31 @@ async function changeDate(event) {
 }
 
 
+async function deleteDiary(diaryId) {
+  const confirmation = confirm("이 다이어리를 삭제하시겠습니까?");
+  if (!confirmation) return;
+
+  try {
+    const response = await fetch(`/api/diary/${diaryId}/delete`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.ok) {
+      alert("다이어리가 성공적으로 삭제되었습니다.");
+      document.querySelector(`#diary-${diaryId}`).remove();
+    } else {
+      const errorData = await response.json();
+      alert(`다이어리 삭제 실패: ${errorData.error}`);
+    }
+  } catch (error) {
+    console.error("다이어리 삭제 중 오류가 발생했습니다:", error);
+    alert("다이어리 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+  }
+}
+
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
   const year = date.getFullYear();
@@ -103,7 +128,6 @@ async function DiaryDate(today) {
     console.error("Failed to fetch diary data:", error);
   }
 
-  // 다이어리 항목이 없을 경우 표시할 메시지
   if (diaryEntries.length === 0) {
     return `
       <div class="diary-wrapper">
@@ -129,7 +153,6 @@ async function DiaryDate(today) {
     `;
   }
 
-  // 다이어리 항목이 여러 개인 경우 각 항목을 순회하여 렌더링
   const diaryEntriesHTML = diaryEntries.map((entry, entryIdx) => {
     const diaryId = entry._id;
     const diaryWriter = entry.user_id || "Unknown";
@@ -148,7 +171,7 @@ async function DiaryDate(today) {
             </div>
           </div>`
         ).join("")
-      : ""; // 댓글이 없을 때는 빈 문자열 반환
+      : "";
 
     return `
       <div class="diary-container" id="diary-${diaryId}">
@@ -160,7 +183,7 @@ async function DiaryDate(today) {
           <span>${diaryContent}</span>
           <div class="diary-edit-wrapper">
             <button id="btn-diary-edit">수정</button>
-            <button id="btn-diary-remove">삭제</button>
+            <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
           </div>
         </div>
         <div class="diary-comment-container">
