@@ -352,14 +352,15 @@ async function DiaryDate(today) {
             <span>no.${idx + 1} ${comment.user_id}</span>
             <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
           </div>
-          <div class="diary-comment-content">
-            <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
-            <div>${comment.content}</div>
-            <div class="diary-comment-edit-wrapper">
-              <button onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${entryIdx}-${idx} .diary-comment-content div'))">수정</button>
-              <button onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
-            </div>
-          </div>
+         <div class="diary-comment-content">
+  <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
+  <div>${comment.content}</div>
+  <div class="diary-comment-edit-wrapper">
+    <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${entryIdx}-${idx} .diary-comment-content div'))">수정</button>
+    <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
+  </div>
+</div>
+
         </div>`
       ).join("")
     : "";
