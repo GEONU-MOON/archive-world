@@ -111,6 +111,63 @@ async function deleteDiary(diaryId) {
   }
 }
 
+async function editDiary(diaryId, currentContentElement) {
+  const originalContent = currentContentElement.innerHTML;
+
+  // 편집 가능한 입력 폼으로 다이어리 내용을 변경
+  currentContentElement.innerHTML = `<textarea id="edit-diary-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
+  
+  // 수정 완료 및 취소 버튼 추가
+  const editWrapper = currentContentElement.nextElementSibling;
+  editWrapper.innerHTML = `
+    <button onclick="saveEditedDiary('${diaryId}')">저장</button>
+    <button onclick="cancelEditDiary('${diaryId}', '${originalContent.replace(/'/g, "\\'")}')">취소</button>
+  `;
+}
+
+async function saveEditedDiary(diaryId) {
+  const newContent = document.querySelector("#edit-diary-content").value;
+
+  try {
+    const response = await fetchWithToken(`/api/diary/${diaryId}/edit`, {
+      method: "PUT",
+      body: JSON.stringify({ content: newContent }),
+    });
+
+    if (response.ok) {
+      alert("다이어리가 성공적으로 수정되었습니다.");
+      document.querySelector(`#diary-${diaryId} .diary-content span`).innerHTML = newContent.replace(/\n/g, "<br>");
+    } else {
+      const errorData = await response.json();
+      alert(`수정 실패: ${errorData.error}`);
+    }
+  } catch (error) {
+    console.error("수정 중 오류가 발생했습니다:", error);
+    alert("수정 중 오류가 발생했습니다. 다시 시도해주세요.");
+  }
+
+  // 수정 완료 후 버튼을 원래대로 변경
+  const editWrapper = document.querySelector(`#diary-${diaryId} .diary-edit-wrapper`);
+  editWrapper.innerHTML = `
+    <button onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
+    <button onclick="deleteDiary('${diaryId}')">삭제</button>
+  `;
+}
+
+function cancelEditDiary(diaryId, originalContent) {
+  // 수정 취소 시 원래 내용으로 복구
+  const contentElement = document.querySelector(`#diary-${diaryId} .diary-content span`);
+  contentElement.innerHTML = originalContent;
+
+  // 수정 취소 후 버튼을 원래대로 변경
+  const editWrapper = contentElement.nextElementSibling;
+  editWrapper.innerHTML = `
+    <button onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
+    <button onclick="deleteDiary('${diaryId}')">삭제</button>
+  `;
+}
+
+
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
   const year = date.getFullYear();
@@ -182,7 +239,7 @@ async function DiaryDate(today) {
         <div class="diary-content">
           <span>${diaryContent}</span>
           <div class="diary-edit-wrapper">
-            <button id="btn-diary-edit">수정</button>
+            <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
             <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
           </div>
         </div>
