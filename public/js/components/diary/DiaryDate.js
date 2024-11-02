@@ -200,20 +200,7 @@ async function addComment(diaryId, formattedDate) {
   }
 }
 
-// 댓글 수정 기능
-async function editComment(diaryId, commentIndex, originalContentElement) {
-  const originalContent = originalContentElement.innerText;
 
-  // 수정 입력 폼으로 변경
-  originalContentElement.innerHTML = `<textarea id="edit-comment-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
-  
-  // 저장 및 취소 버튼 추가
-  const editWrapper = originalContentElement.nextElementSibling;
-  editWrapper.innerHTML = `
-    <button onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
-    <button onclick="cancelEditComment('${diaryId}', ${commentIndex}, '${originalContent.replace(/'/g, "\\'")}')">취소</button>
-  `;
-}
 
 async function saveEditedComment(diaryId, commentIndex) {
   const newContent = document.querySelector("#edit-comment-content").value;
@@ -251,16 +238,61 @@ async function saveEditedComment(diaryId, commentIndex) {
 
 
 
+// 댓글 수정 취소 함수
 function cancelEditComment(diaryId, commentIndex, originalContent) {
-  const contentElement = document.querySelector(`#diary-${diaryId} #comment-${commentIndex} .diary-comment-content div`);
-  contentElement.innerHTML = originalContent;
+  console.log("cancelEditComment called", diaryId, commentIndex, originalContent);
 
-  const editWrapper = contentElement.nextElementSibling;
-  editWrapper.innerHTML = `
-    <button onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#comment-${commentIndex} .diary-comment-content div'))">수정</button>
-    <button onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
-  `;
+  // 댓글의 원래 내용을 복원할 요소 선택
+  const contentElement = document.querySelector(`#diary-${diaryId} #comment-${diaryId}-${commentIndex} .diary-comment-content div`);
+  console.log("Selected contentElement:", contentElement);
+
+  if (contentElement) {
+    // 수정 폼 제거하고 원래 내용 복원
+    contentElement.innerHTML = originalContent; 
+    console.log("Original content restored");
+
+    // 버튼 UI 복원
+    const editWrapper = contentElement.nextElementSibling;
+    console.log("Selected editWrapper:", editWrapper);
+    
+    if (editWrapper) {
+      editWrapper.innerHTML = `
+        <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#diary-${diaryId} #comment-${diaryId}-${commentIndex} .diary-comment-content div'))">수정</button>
+        <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
+      `;
+      console.log("Buttons restored");
+    } else {
+      console.log("editWrapper not found");
+    }
+  } else {
+    console.log("contentElement not found");
+  }
 }
+
+// 댓글 수정 함수
+async function editComment(diaryId, commentIndex, originalContentElement) {
+  console.log("editComment called", diaryId, commentIndex);
+
+  const originalContent = originalContentElement.innerHTML;
+
+  // 댓글을 수정 가능한 입력 폼으로 변경
+  originalContentElement.innerHTML = `<textarea id="edit-comment-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
+  console.log("Content replaced with textarea");
+
+  // 저장 및 취소 버튼 추가
+  const editWrapper = originalContentElement.nextElementSibling;
+  if (editWrapper) {
+    editWrapper.innerHTML = `
+      <button onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
+      <button onclick="cancelEditComment('${diaryId}', ${commentIndex}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
+    `;
+    console.log("Save and cancel buttons added");
+  } else {
+    console.log("editWrapper not found");
+  }
+}
+
+
 
 // 댓글 삭제 기능
 async function deleteComment(diaryId, commentIndex) {
@@ -347,23 +379,23 @@ async function DiaryDate(today) {
 
     const commentsHTML = entry.comments && entry.comments.length > 0
     ? entry.comments.map((comment, idx) => `
-        <div class="diary-comment-wrapper" id="comment-${entryIdx}-${idx}">
+        <div class="diary-comment-wrapper" id="comment-${diaryId}-${idx}">
           <div class="diary-comment-info">
             <span>no.${idx + 1} ${comment.user_id}</span>
             <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
           </div>
-         <div class="diary-comment-content">
-  <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
-  <div>${comment.content}</div>
-  <div class="diary-comment-edit-wrapper">
-    <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${entryIdx}-${idx} .diary-comment-content div'))">수정</button>
-    <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
-  </div>
-</div>
-
+          <div class="diary-comment-content">
+            <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
+            <div>${comment.content}</div>
+            <div class="diary-comment-edit-wrapper">
+              <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${diaryId}-${idx} .diary-comment-content div'))">수정</button>
+              <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
+            </div>
+          </div>
         </div>`
       ).join("")
     : "";
+
     return `
       <div class="diary-container" id="diary-${diaryId}">
         <div class="diary-info">
