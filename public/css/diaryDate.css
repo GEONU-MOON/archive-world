@@ -202,3 +202,7 @@ td#month:hover {
   align-items: center;
   padding: 10px;
 }
+
+.comment-avatar {
+  margin-right: 10px; /* 원하는 마진 값으로 설정 */
+}

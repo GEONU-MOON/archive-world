@@ -223,7 +223,7 @@ async function DiaryDate(today) {
               <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
             </div>
             <div class="diary-comment-content">
-              <img src="/resource/images/profile.png" width=100 height=100 />
+              <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
               <div id="diary-comment-content">${comment.content}</div>
             </div>
           </div>`

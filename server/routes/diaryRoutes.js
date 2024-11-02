@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Diary = require("../models/Diary");
+const User = require("../models/User"); // User 모델 가져오기
 const { findUser } = require("../util/util");
 
 // 다이어리 작성 엔드포인트
@@ -29,24 +30,29 @@ router.post("/write", async (req, res) => {
 router.get("/:year/:month/:day", async (req, res) => {
   try {
     const { year, month, day } = req.params;
-
     const startDate = new Date(year, month - 1, day);
     const endDate = new Date(year, month - 1, parseInt(day) + 1);
 
-    const diary = await Diary.find({
+    // 다이어리 찾기
+    const diaries = await Diary.find({
       date: {
         $gte: startDate,
         $lt: endDate,
       },
-    });
+    }).lean(); // lean()으로 plain object로 변환
 
-    if (diary) {
-      res.status(200).json(diary);
-    } else {
-      res.status(404).json({ error: "No diary entry found for this date" });
+    // 각 다이어리의 댓글에 대해 user_avatar를 조회하여 추가
+    for (let diary of diaries) {
+      for (let comment of diary.comments) {
+        const user = await User.findOne({ user_id: comment.user_id }).lean();
+        comment.user_avatar = user ? user.user_avatar : "/resource/images/profile.png"; // user_avatar를 추가
+      }
     }
+
+    res.status(200).json(diaries);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch diary entry" });
+    console.error("Error fetching diary entry:", error);
+    res.status(500).json({ error: "Failed to fetch diary entry", details: error.message });
   }
 });
 
