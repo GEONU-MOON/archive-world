@@ -200,6 +200,98 @@ async function addComment(diaryId, formattedDate) {
   }
 }
 
+// 댓글 수정 기능
+async function editComment(diaryId, commentIndex, originalContentElement) {
+  const originalContent = originalContentElement.innerText;
+
+  // 수정 입력 폼으로 변경
+  originalContentElement.innerHTML = `<textarea id="edit-comment-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
+  
+  // 저장 및 취소 버튼 추가
+  const editWrapper = originalContentElement.nextElementSibling;
+  editWrapper.innerHTML = `
+    <button onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
+    <button onclick="cancelEditComment('${diaryId}', ${commentIndex}, '${originalContent.replace(/'/g, "\\'")}')">취소</button>
+  `;
+}
+
+async function saveEditedComment(diaryId, commentIndex, formattedDate) {
+  const newContent = document.querySelector("#edit-comment-content").value;
+
+  // formattedDate가 정의되지 않았을 경우 현재 날짜로 설정
+  if (!formattedDate) {
+    const now = new Date();
+    formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  }
+
+  try {
+    const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify({ content: newContent }),
+    });
+
+    if (response.ok) {
+      const updatedContent = await DiaryDate(formattedDate); // 최신 컴포넌트 가져오기
+      document.querySelector(".white-box").innerHTML = updatedContent; // 컴포넌트 업데이트
+      alert("댓글이 성공적으로 수정되었습니다.");
+    } else {
+      const errorData = await response.json();
+      alert(`댓글 수정 실패: ${errorData.error}`);
+    }
+  } catch (error) {
+    console.error("댓글 수정 중 오류가 발생했습니다:", error);
+    alert("댓글 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
+  }
+}
+
+
+function cancelEditComment(diaryId, commentIndex, originalContent) {
+  const contentElement = document.querySelector(`#diary-${diaryId} #comment-${commentIndex} .diary-comment-content div`);
+  contentElement.innerHTML = originalContent;
+
+  const editWrapper = contentElement.nextElementSibling;
+  editWrapper.innerHTML = `
+    <button onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#comment-${commentIndex} .diary-comment-content div'))">수정</button>
+    <button onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
+  `;
+}
+
+// 댓글 삭제 기능
+async function deleteComment(diaryId, commentIndex, formattedDate) {
+  if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
+
+  if (!formattedDate) {
+    const now = new Date();
+    formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  }
+
+  try {
+    const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.ok) {
+      const updatedContent = await DiaryDate(formattedDate);
+      document.querySelector(".white-box").innerHTML = updatedContent;
+      alert("댓글이 성공적으로 삭제되었습니다.");
+    } else {
+      const errorData = await response.json();
+      alert(`댓글 삭제 실패: ${errorData.error}`);
+    }
+  } catch (error) {
+    console.error("댓글 삭제 중 오류가 발생했습니다:", error);
+    alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.");
+  }
+}
+
+
 
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
@@ -249,20 +341,23 @@ async function DiaryDate(today) {
     const diaryContent = entry.content.replace(/\n/g, "<br/>");
 
     const commentsHTML = entry.comments && entry.comments.length > 0
-      ? entry.comments.map((comment, idx) => `
-          <div class="diary-comment-wrapper" id="comment-${entryIdx}-${idx}">
-            <div class="diary-comment-info">
-              <span>no.${idx + 1} ${comment.user_id}</span>
-              <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
+    ? entry.comments.map((comment, idx) => `
+        <div class="diary-comment-wrapper" id="comment-${entryIdx}-${idx}">
+          <div class="diary-comment-info">
+            <span>no.${idx + 1} ${comment.user_id}</span>
+            <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
+          </div>
+          <div class="diary-comment-content">
+            <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
+            <div>${comment.content}</div>
+            <div class="diary-comment-edit-wrapper">
+              <button onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${entryIdx}-${idx} .diary-comment-content div'))">수정</button>
+              <button onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
             </div>
-            <div class="diary-comment-content">
-              <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
-              <div id="diary-comment-content">${comment.content}</div>
-            </div>
-          </div>`
-        ).join("")
-      : "";
-
+          </div>
+        </div>`
+      ).join("")
+    : "";
     return `
       <div class="diary-container" id="diary-${diaryId}">
         <div class="diary-info">
