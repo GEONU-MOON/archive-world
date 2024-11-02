@@ -1,9 +1,9 @@
 function photoBoard() {
   const photoData = {
-    title: "곰돌이와 곰순이",
-    writer: "뭉",
+    title: "곰돌이 푸",
+    writer: "푸",
     date: "2024-08-06",
-    description: "곰돌이 푸와 곰순이?",
+    description: "곰돌이 푸?",
     imageUrl: "/resource/images/profile.png",
     comments: [
       {
