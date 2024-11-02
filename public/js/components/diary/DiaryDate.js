@@ -167,6 +167,39 @@ function cancelEditDiary(diaryId, originalContent) {
   `;
 }
 
+async function addComment(diaryId, formattedDate) {
+  const commentInput = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="diary-comment"]`);
+  const commentContent = commentInput.value.trim();
+
+  if (!commentContent) {
+    alert("댓글을 입력해 주세요.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/diary/${diaryId}/comment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify({ content: commentContent }),
+    });
+
+    if (response.ok) {
+      commentInput.value = ""; // 입력 필드 초기화
+      const updatedContent = await DiaryDate(formattedDate); // 최신 컴포넌트 가져오기
+      document.querySelector(".white-box").innerHTML = updatedContent; // 컴포넌트 업데이트
+    } else {
+      const errorData = await response.json();
+      alert(`댓글 작성 실패: ${errorData.error}`);
+    }
+  } catch (error) {
+    console.error("댓글 작성 중 오류가 발생했습니다:", error);
+    alert("댓글 작성 중 오류가 발생했습니다. 다시 시도해 주세요.");
+  }
+}
+
 
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
@@ -244,11 +277,11 @@ async function DiaryDate(today) {
           </div>
         </div>
         <div class="diary-comment-container">
-          <form class="form-diary-comment">
-            <label>댓글</label>
-            <input type="text" name="diary-comment" />
-            <button type="submit">확인</button>
-          </form>
+          <form class="form-diary-comment" onsubmit="event.preventDefault(); addComment('${diaryId}', '${today}');">
+        <label>댓글</label>
+        <input type="text" name="diary-comment" />
+        <button type="submit">확인</button>
+      </form>
           ${commentsHTML}
         </div>
       </div>
