@@ -215,14 +215,14 @@ async function editComment(diaryId, commentIndex, originalContentElement) {
   `;
 }
 
-async function saveEditedComment(diaryId, commentIndex, formattedDate) {
+async function saveEditedComment(diaryId, commentIndex) {
   const newContent = document.querySelector("#edit-comment-content").value;
 
-  // formattedDate가 정의되지 않았을 경우 현재 날짜로 설정
-  if (!formattedDate) {
-    const now = new Date();
-    formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-  }
+  // 현재 선택된 날짜를 추출
+  const year = document.querySelector("#month span").textContent.split(".")[0];
+  const month = document.querySelector("#month span").textContent.split(".")[1].padStart(2, "0");
+  const selectedDay = document.querySelector(".calendar-today span").textContent.split(".")[1].padStart(2, "0");
+  const formattedDate = `${year}${month}${selectedDay}`;
 
   try {
     const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
@@ -235,8 +235,9 @@ async function saveEditedComment(diaryId, commentIndex, formattedDate) {
     });
 
     if (response.ok) {
-      const updatedContent = await DiaryDate(formattedDate); // 최신 컴포넌트 가져오기
-      document.querySelector(".white-box").innerHTML = updatedContent; // 컴포넌트 업데이트
+      // 최신 컴포넌트를 가져와 업데이트
+      const updatedContent = await DiaryDate(formattedDate);
+      document.querySelector(".white-box").innerHTML = updatedContent;
       alert("댓글이 성공적으로 수정되었습니다.");
     } else {
       const errorData = await response.json();
@@ -247,6 +248,7 @@ async function saveEditedComment(diaryId, commentIndex, formattedDate) {
     alert("댓글 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
+
 
 
 function cancelEditComment(diaryId, commentIndex, originalContent) {
@@ -261,13 +263,14 @@ function cancelEditComment(diaryId, commentIndex, originalContent) {
 }
 
 // 댓글 삭제 기능
-async function deleteComment(diaryId, commentIndex, formattedDate) {
+async function deleteComment(diaryId, commentIndex) {
   if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
 
-  if (!formattedDate) {
-    const now = new Date();
-    formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-  }
+  // 현재 선택된 날짜를 추출
+  const year = document.querySelector("#month span").textContent.split(".")[0];
+  const month = document.querySelector("#month span").textContent.split(".")[1].padStart(2, "0");
+  const selectedDay = document.querySelector(".calendar-today span").textContent.split(".")[1].padStart(2, "0");
+  const formattedDate = `${year}${month}${selectedDay}`;
 
   try {
     const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
@@ -278,6 +281,7 @@ async function deleteComment(diaryId, commentIndex, formattedDate) {
     });
 
     if (response.ok) {
+      // 현재 선택된 날짜의 다이어리 데이터를 다시 로드
       const updatedContent = await DiaryDate(formattedDate);
       document.querySelector(".white-box").innerHTML = updatedContent;
       alert("댓글이 성공적으로 삭제되었습니다.");
@@ -290,6 +294,7 @@ async function deleteComment(diaryId, commentIndex, formattedDate) {
     alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
+
 
 
 
