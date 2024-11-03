@@ -1,13 +1,3 @@
-function randomNickname() {
-  const firstNames = ["행복한", "귀찮은", "기분 좋은", "활기찬", "느긋한", "용감한", "신비로운", "총명한", "재빠른", "조용한"];
-  const lastNames = ["사자", "호랑이", "토끼", "고양이", "강아지", "늑대", "여우", "곰", "다람쥐", "부엉이"];
-
-  const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-
-  return randomFirstName + " " + randomLastName;
-}
-
 function renderVisitorSays() {
   // todo: 방명록 댓글 get 요청
   const visitorSays = [
@@ -48,7 +38,7 @@ function renderVisitorSays() {
         <p>${item.content}</p>
       </div>
     </div>  
-  `,
+  `
     )
     .join("");
 
@@ -57,41 +47,49 @@ function renderVisitorSays() {
 
 function postVisitorSay(event) {
   event.preventDefault();
-  const inputData = document.getElementById("input-visitor-say").value;
-  let inputToHTML = inputData
+  const author = document.getElementById("input-visitor-author").value;
+  const password = document.getElementById("input-visitor-password").value;
+  const content = document.getElementById("input-visitor-say").value;
+  let inputToHTML = content
     .split("\n")
     .map(line => `${line}`)
     .join("<br>");
-  inputToHTML = `<span>${inputToHTML}</span>`;
-  console.log(inputToHTML);
+  
+  console.log("작성자:", author);
+  console.log("비밀번호:", password);
+  console.log("내용:", inputToHTML);
+  // 여기에서 서버에 데이터를 POST 요청으로 전송할 수 있습니다.
 }
 
 function VisitorComponent() {
   const component = `
     <div class="visitor-container">
-      <p>▶ 방명록을 작성해주세요 :)</p>
-      <div class="visitor-wrapper">
-        <form id="form-visitor">
-          <div>
-            <img src="/resource/images/visitor01.png" width="125" height="125" />
-            <button id="btn-visitor-change">
-              <span>⟳</span>
-              <span>이미지 새로고침</span>
-            </button>
-          </div>
-          <div class="visitor-input-wrapper">
-            <textarea id="input-visitor-say" cols="63"></textarea>
-            <p>
-              <span>작성자 : ${randomNickname()}</span>
-              <button type="submit" id="btn-visitor-send" onclick="postVisitorSay(event)">확인</button>
-            </p>
-          </div>
-        </form>
-        <div class="visitor-says-container">
-          ${renderVisitorSays()}
+  <p>▶ 방명록을 작성해주세요 :)</p>
+  <div class="visitor-wrapper">
+    <form id="form-visitor" onsubmit="postVisitorSay(event)">
+      <div class="visitor-image-section">
+        <img src="/resource/images/visitor01.png" width="125" height="125" />
+        <button type="button" id="btn-visitor-change">
+          <span>⟳</span> 이미지 새로고침
+        </button>
+      </div>
+      <div class="visitor-input-wrapper">
+        <div class="visitor-info-form">
+        <input type="text" id="input-visitor-author" placeholder="닉네임" required />
+        <input type="password" id="input-visitor-password" placeholder="비밀번호" required />
+        </div>
+        <textarea id="input-visitor-say" placeholder="내용을 입력하세요" required></textarea>
+        <div>
+          <button type="submit" id="btn-visitor-send">확인</button>
         </div>
       </div>
+    </form>
+    <div class="visitor-says-container">
+      ${renderVisitorSays()}
     </div>
+  </div>
+</div>
+
   `;
   return component;
 }
