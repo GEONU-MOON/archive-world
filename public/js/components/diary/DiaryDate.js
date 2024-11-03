@@ -7,7 +7,7 @@ function checkToday(year, month, day) {
 }
 
 function getDateTemplate(year, month) {
-  let lastDates = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const lastDates = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
   // 윤년 계산
   if ((parseInt(year) % 4 == 0 && parseInt(year) % 100 != 0) || parseInt(year) % 400 == 0) {
@@ -106,7 +106,7 @@ async function deleteDiary(diaryId) {
       alert(`다이어리 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("다이어리 삭제 중 오류가 발생했습니다:", error);
+    // console.error("다이어리 삭제 중 오류가 발생했습니다:", error);
     alert("다이어리 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
   }
 }
@@ -195,7 +195,7 @@ async function addComment(diaryId, formattedDate) {
       alert(`댓글 작성 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("댓글 작성 중 오류가 발생했습니다:", error);
+    // console.error("댓글 작성 중 오류가 발생했습니다:", error);
     alert("댓글 작성 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
@@ -231,7 +231,7 @@ async function saveEditedComment(diaryId, commentIndex) {
       alert(`댓글 수정 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("댓글 수정 중 오류가 발생했습니다:", error);
+    // console.error("댓글 수정 중 오류가 발생했습니다:", error);
     alert("댓글 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
@@ -240,44 +240,44 @@ async function saveEditedComment(diaryId, commentIndex) {
 
 // 댓글 수정 취소 함수
 function cancelEditComment(diaryId, commentIndex, originalContent) {
-  console.log("cancelEditComment called", diaryId, commentIndex, originalContent);
+  // console.log("cancelEditComment called", diaryId, commentIndex, originalContent);
 
   // 댓글의 원래 내용을 복원할 요소 선택
   const contentElement = document.querySelector(`#diary-${diaryId} #comment-${diaryId}-${commentIndex} .diary-comment-content div`);
-  console.log("Selected contentElement:", contentElement);
+  // console.log("Selected contentElement:", contentElement);
 
   if (contentElement) {
     // 수정 폼 제거하고 원래 내용 복원
     contentElement.innerHTML = originalContent; 
-    console.log("Original content restored");
+    // console.log("Original content restored");
 
     // 버튼 UI 복원
     const editWrapper = contentElement.nextElementSibling;
-    console.log("Selected editWrapper:", editWrapper);
+    // console.log("Selected editWrapper:", editWrapper);
     
     if (editWrapper) {
       editWrapper.innerHTML = `
         <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#diary-${diaryId} #comment-${diaryId}-${commentIndex} .diary-comment-content div'))">수정</button>
         <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
       `;
-      console.log("Buttons restored");
+      // console.log("Buttons restored");
     } else {
-      console.log("editWrapper not found");
+      // console.log("editWrapper not found");
     }
   } else {
-    console.log("contentElement not found");
+    // console.log("contentElement not found");
   }
 }
 
 // 댓글 수정 함수
 async function editComment(diaryId, commentIndex, originalContentElement) {
-  console.log("editComment called", diaryId, commentIndex);
+  // console.log("editComment called", diaryId, commentIndex);
 
   const originalContent = originalContentElement.innerHTML;
 
   // 댓글을 수정 가능한 입력 폼으로 변경
   originalContentElement.innerHTML = `<textarea id="edit-comment-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
-  console.log("Content replaced with textarea");
+  // console.log("Content replaced with textarea");
 
   // 저장 및 취소 버튼 추가
   const editWrapper = originalContentElement.nextElementSibling;
@@ -286,9 +286,9 @@ async function editComment(diaryId, commentIndex, originalContentElement) {
       <button onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
       <button onclick="cancelEditComment('${diaryId}', ${commentIndex}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
     `;
-    console.log("Save and cancel buttons added");
+    // console.log("Save and cancel buttons added");
   } else {
-    console.log("editWrapper not found");
+    // console.log("editWrapper not found");
   }
 }
 
@@ -322,7 +322,7 @@ async function deleteComment(diaryId, commentIndex) {
       alert(`댓글 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("댓글 삭제 중 오류가 발생했습니다:", error);
+    // console.error("댓글 삭제 중 오류가 발생했습니다:", error);
     alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
@@ -344,7 +344,7 @@ async function DiaryDate(today) {
       diaryEntries = await diaryResponse.json();
     }
   } catch (error) {
-    console.error("Failed to fetch diary data:", error);
+    // console.error("Failed to fetch diary data:", error);
   }
 
   if (diaryEntries.length === 0) {
