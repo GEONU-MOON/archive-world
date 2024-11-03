@@ -28,7 +28,7 @@ async function postDiary() {
       alert(`다이어리 등록 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("다이어리 등록 중 오류가 발생했습니다:", error);
+    // console.error("다이어리 등록 중 오류가 발생했습니다:", error);
     alert("다이어리 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
   }
 }
@@ -64,7 +64,6 @@ function DiaryForm() {
       <button onclick="document.execCommand('justifyLeft', false, '');">왼쪽 정렬</button>
       <button onclick="document.execCommand('justifyCenter', false, '');">가운데 정렬</button>
       <button onclick="document.execCommand('justifyRight', false, '');">오른쪽 정렬</button>
-      <button onclick="document.execCommand('insertUnorderedList', false, '');">토글 리스트</button>
     </div>
     <div id="editor" contenteditable="true"></div>
   </div>

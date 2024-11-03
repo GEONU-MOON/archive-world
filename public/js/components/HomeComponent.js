@@ -25,9 +25,9 @@ async function HomeComponent() {
     { comment: "방명록 내용 4", timestamp: "2024-08-08 18:45" },
   ];
 
-  // 내용을 100자 정도로 자르기
-  const truncateContent = (content, length = 17) => 
-    content.length > length ? content.slice(0, length) + "..." : content;
+  const truncateContent = (content, length = 15) =>
+    content.replace(/<[^>]*>/g, "").slice(0, length);
+  
 
   const diaryHtml = diaryContents
   .sort((a, b) => new Date(b.date) - new Date(a.date)) 
