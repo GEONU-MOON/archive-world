@@ -223,4 +223,14 @@ router.delete("/:diaryId/comment/:commentIndex", async (req, res) => {
   }
 });
 
+router.get("/all", async (req, res) => {
+  try {
+    const diaries = await Diary.find({}); // 모든 다이어리 항목을 가져옵니다
+    res.status(200).json(diaries);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch diary entries" });
+  }
+});
+
+
 module.exports = router;

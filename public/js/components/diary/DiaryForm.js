@@ -12,7 +12,7 @@ async function postDiary() {
   }
 
   let newDiaryData = document.querySelector("#editor").innerHTML;
-  newDiaryData = `<div>${newDiaryData}</div>`;
+  newDiaryData = `${newDiaryData}`;
 
   try {
     const response = await fetchWithToken("/api/diary/write", {
@@ -43,7 +43,7 @@ function DiaryForm() {
   const component = `
   <div class="diary-form-container">
     <div class="diary-post">
-      <button id="btn-diary-post" onclick="postDiary()">저장하기✏️</button>
+      <button id="btn-diary-post" onclick="postDiary()">저장✏️</button>
     </div>
     <hr />
     <div id="toolbar">
