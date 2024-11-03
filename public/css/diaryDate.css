@@ -202,3 +202,29 @@ td#month:hover {
   align-items: center;
   padding: 10px;
 }
+
+.comment-avatar {
+  margin-right: 10px;
+}
+
+.diary-comment-edit-wrapper {
+  margin-left: auto;
+  display: flex;
+}
+
+#btn-comment-edit,
+#btn-comment-remove {
+  border: none;
+  background-color: transparent;
+  font-size: 13px;
+  color: #9a9a9a;
+}
+
+#btn-comment-edit {
+  border-right: 2px solid #9a9a9a;
+}
+
+#btn-comment-edit:hover,
+#btn-diary-remove:hover {
+  color: black;
+}

@@ -1,4 +1,4 @@
-### Pretzel World
+### Pretzel
 
 #### 🙋How to Start
 

@@ -5,6 +5,7 @@ const app = express();
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
+const diaryRoutes = require("./routes/diaryRoutes");
 
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use("/auth", authRoutes);
 app.use(profileRoutes);
 app.use("/visitors", visitorRoutes);
+app.use("/api/diary", diaryRoutes);
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

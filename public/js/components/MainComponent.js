@@ -1,3 +1,4 @@
+
 const setDiaryLinkToToday = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -19,7 +20,7 @@ async function MainComponent() {
         <div class="main-wrapper">
           <div class="header-box">
             <div class="intro">열심히 개발ㅎrㅈr...S2</div>
-            <div class="outro">Hello, Pretzel World!</div>
+            <div class="outro">Hello, World!</div>
           </div>
           <div class="content-area"> 
             <div class="white-box"></div>

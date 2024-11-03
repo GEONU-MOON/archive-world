@@ -1,12 +1,38 @@
-function postDiary() {
-  confirm("다이어리를 등록하시겠습니까?"); // todo: confirm 확인/취소 처리
+function getTodayFormatted() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
+
+async function postDiary() {
+  if (!confirm("다이어리를 등록하시겠습니까?")) {
+    return;
+  }
 
   let newDiaryData = document.querySelector("#editor").innerHTML;
-  newDiaryData = `<div>${newDiaryData}</div>`;
-  console.log(newDiaryData);
+  newDiaryData = `${newDiaryData}`;
 
-  // todo: diary post 요청
+  try {
+    const response = await fetchWithToken("/api/diary/write", {
+      method: "POST",
+      body: JSON.stringify({ content: newDiaryData }),
+    });
+
+    if (response.ok) {
+      alert("다이어리가 성공적으로 등록되었습니다.");
+      window.location.assign(`/diary/${getTodayFormatted()}`);
+    } else {
+      const errorData = await response.json();
+      alert(`다이어리 등록 실패: ${errorData.error}`);
+    }
+  } catch (error) {
+    // console.error("다이어리 등록 중 오류가 발생했습니다:", error);
+    alert("다이어리 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+  }
 }
+
 
 function changeFontColor() {
   var color = document.getElementById("color-select").value;
@@ -17,7 +43,7 @@ function DiaryForm() {
   const component = `
   <div class="diary-form-container">
     <div class="diary-post">
-      <button id="btn-diary-post" onclick="postDiary()">글쓰기✏️</button>
+      <button id="btn-diary-post" onclick="postDiary()">저장✏️</button>
     </div>
     <hr />
     <div id="toolbar">
@@ -38,7 +64,6 @@ function DiaryForm() {
       <button onclick="document.execCommand('justifyLeft', false, '');">왼쪽 정렬</button>
       <button onclick="document.execCommand('justifyCenter', false, '');">가운데 정렬</button>
       <button onclick="document.execCommand('justifyRight', false, '');">오른쪽 정렬</button>
-      <button onclick="document.execCommand('insertUnorderedList', false, '');">토글 리스트</button>
     </div>
     <div id="editor" contenteditable="true"></div>
   </div>

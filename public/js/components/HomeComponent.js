@@ -1,28 +1,20 @@
-function HomeComponent() {
-  const diaryContents = [
-    {
-      content: "다이어리 내용1",
-      author: "건우",
-      timestamp: "2024-08-05 14:00",
-    },
-    {
-      content: "다이어리 내용2",
-      author: "건우",
-      timestamp: "2024-08-07 12:20",
-    },
-    {
-      content: "다이어리 내용3",
-      author: "건우",
-      timestamp: "2024-08-08 18:45",
-    },
-    {
-      content: "다이어리 내용4",
-      author: "수민",
-      timestamp: "2024-08-06 15:30",
-    },
-  ];
+async function HomeComponent() {
+  let diaryContents = [];
+  try {
+    // 백엔드에서 모든 다이어리 항목 가져오기
+    const response = await fetch("/api/diary/all");
+    if (response.ok) {
+      diaryContents = await response.json();
+    }
+  } catch (error) {
+  }
 
-  const photos = ["/resource/images/elephant.jpeg", "/resource/images/cute.jpeg", "/resource/images/soom.jpeg", "/resource/images/elephant.jpeg"];
+  const photos = [
+    "/resource/images/elephant.jpeg",
+    "/resource/images/cute.jpeg",
+    "/resource/images/soom.jpeg",
+    "/resource/images/elephant.jpeg",
+  ];
 
   const miniroomImage = "/resource/images/mini.png";
 
@@ -33,18 +25,23 @@ function HomeComponent() {
     { comment: "방명록 내용 4", timestamp: "2024-08-08 18:45" },
   ];
 
+  const truncateContent = (content, length = 15) =>
+    content.replace(/<[^>]*>/g, "").slice(0, length);
+  
+
   const diaryHtml = diaryContents
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) // 최신 날짜가 먼저 오도록 내림차순 정렬
-    .slice(0, 3) // 상위 3개 항목만 렌더링
-    .map(
-      item => `
+  .sort((a, b) => new Date(b.date) - new Date(a.date)) 
+  .slice(0,3) 
+  .map(
+    item => `
     <div class="diary-item">
-      ${item.content}
-      <div class="diary-author">${item.author}</div>
+      ${truncateContent(item.content)}
+      <div class="diary-author">${item.user_id}</div>
     </div>
-  `,
-    )
-    .join("");
+  `
+  )
+  .join("");
+
 
   const photosHtml = photos
     .slice(0, 3)
