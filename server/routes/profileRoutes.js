@@ -3,7 +3,8 @@ const router = express.Router();
 const { imageUploader, uploadToS3 } = require("../imageUploader");
 const { findUser } = require("../util/util");
 
-router.post("/upload-profile", imageUploader.single("image"), uploadToS3, async (req, res) => {
+
+router.post("/upload-profile", imageUploader.single("image"), (req, res, next) => uploadToS3(req, res, next, "profile"), async (req, res) => {
   try {
     const imageURL = req.imageUrl;
     const currentUser = await findUser(req.headers.authorization);
@@ -11,7 +12,6 @@ router.post("/upload-profile", imageUploader.single("image"), uploadToS3, async 
     await currentUser.save();
     res.status(200).json({ message: "Profile picture uploaded successfully", imageURL });
   } catch (error) {
-    // console.error("Error during profile picture upload:", error);
     res.status(500).json({ error: "Failed to upload profile picture" });
   }
 });
