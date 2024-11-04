@@ -1,6 +1,8 @@
+let selectedAvatarUrl = getRandomAvatar(); 
+
 function getRandomAvatar() {
-  const bucketName = "pretzelworld-bucket"; // S3 버킷 이름
-  const region = "ap-northeast-2"; // S3 리전
+  const bucketName = "pretzelworld-bucket"; 
+  const region = "ap-northeast-2"; 
   const avatars = [
     `https://${bucketName}.s3.${region}.amazonaws.com/avatars/mario.png`,
     `https://${bucketName}.s3.${region}.amazonaws.com/avatars/crown.png`,
@@ -18,21 +20,15 @@ function getRandomAvatar() {
   return avatars[randomIndex];
 }
 
-
-
 async function renderVisitorSays() {
   try {
-    console.log("방명록 데이터를 요청합니다...");
-
     const response = await fetch("/visitors/visitors-read");
 
-    console.log("응답 상태 코드:", response.status);
     if (!response.ok) {
       throw new Error("Failed to fetch visitor data");
     }
 
     const visitorSays = await response.json();
-    console.log("받아온 방명록 데이터:", visitorSays);
 
     const visitorSaysHTML = visitorSays
       .map(
@@ -43,7 +39,7 @@ async function renderVisitorSays() {
             <span class="visitor-writeAt">${new Date(item.createdAt).toLocaleString()}</span>
           </div>
           <div class="visitor-says-content">
-            <img src="${item.writer_avatar || '/resource/images/default.png'}" width="100" height="100" />
+            <img src="${item.writer_avatar}" width="100" height="100" alt="Visitor Avatar" />
             <p>${item.content}</p>
           </div>
         </div>  
@@ -53,7 +49,7 @@ async function renderVisitorSays() {
 
     document.querySelector(".visitor-says-container").innerHTML = visitorSaysHTML;
   } catch (error) {
-    console.error("Error loading visitor data:", error);
+    // console.error("Error loading visitor data:", error);
   }
 }
 
@@ -63,7 +59,7 @@ function postVisitorSay(event) {
   const password = document.getElementById("input-visitor-password").value;
   const content = document.getElementById("input-visitor-say").value;
 
-  fetch("/add-visitor", {
+  fetch("/visitors/add-visitor", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -71,7 +67,7 @@ function postVisitorSay(event) {
     body: JSON.stringify({
       visitor_no: Date.now(),
       writer: author,
-      writer_avatar: "/resource/images/visitor01.png",
+      writer_avatar: selectedAvatarUrl, 
       content: content,
       password: password,
     }),
@@ -83,11 +79,11 @@ function postVisitorSay(event) {
       return response.json();
     })
     .then(data => {
-      console.log("Visitor added:", data);
+      // console.log("Visitor added:", data);
       renderVisitorSays(); 
     })
     .catch(error => {
-      console.error("Error adding visitor:", error);
+      // console.error("Error adding visitor:", error);
     });
 }
 
@@ -98,7 +94,7 @@ function VisitorComponent() {
       <div class="visitor-wrapper">
         <form id="form-visitor" onsubmit="postVisitorSay(event)">
           <div class="visitor-image-section">
-            <img id="visitor-avatar" src="${getRandomAvatar()}" width="125" height="125" />
+            <img id="visitor-avatar" src="${selectedAvatarUrl}" width="125" height="125" />
             <button type="button" id="btn-visitor-change" onclick="changeVisitorImage()">
               <img src="/resource/images/reload.png" alt="새로고침 아이콘" width="16" height="16"/>
               <span>이미지 새로고침</span>
@@ -128,5 +124,6 @@ function VisitorComponent() {
 }
 
 function changeVisitorImage() {
-  document.getElementById("visitor-avatar").src = getRandomAvatar();
+  selectedAvatarUrl = getRandomAvatar(); 
+  document.getElementById("visitor-avatar").src = selectedAvatarUrl;
 }
