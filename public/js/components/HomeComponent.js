@@ -1,12 +1,19 @@
 async function HomeComponent() {
   let diaryContents = [];
+  let visitorComments = [];
+
   try {
-    // 백엔드에서 모든 다이어리 항목 가져오기
-    const response = await fetch("/api/diary/all");
-    if (response.ok) {
-      diaryContents = await response.json();
+    const diaryResponse = await fetch("/api/diary/all");
+    if (diaryResponse.ok) {
+      diaryContents = await diaryResponse.json();
+    }
+
+    const visitorResponse = await fetch("/visitors/visitors-read");
+    if (visitorResponse.ok) {
+      visitorComments = await visitorResponse.json();
     }
   } catch (error) {
+    console.error("Error fetching data:", error);
   }
 
   const photos = [
@@ -18,30 +25,21 @@ async function HomeComponent() {
 
   const miniroomImage = "/resource/images/mini.png";
 
-  const visitorComments = [
-    { comment: "방명록 내용 1", timestamp: "2024-08-05 14:00" },
-    { comment: "방명록 내용 2", timestamp: "2024-08-06 15:30" },
-    { comment: "방명록 내용 3", timestamp: "2024-08-07 12:20" },
-    { comment: "방명록 내용 4", timestamp: "2024-08-08 18:45" },
-  ];
-
   const truncateContent = (content, length = 15) =>
     content.replace(/<[^>]*>/g, "").slice(0, length);
-  
 
   const diaryHtml = diaryContents
-  .sort((a, b) => new Date(b.date) - new Date(a.date)) 
-  .slice(0,3) 
-  .map(
-    item => `
-    <div class="diary-item">
-      ${truncateContent(item.content)}
-      <div class="diary-author">${item.user_id}</div>
-    </div>
-  `
-  )
-  .join("");
-
+    .sort((a, b) => new Date(b.date) - new Date(a.date)) 
+    .slice(0, 3) 
+    .map(
+      item => `
+      <div class="diary-item">
+        ${truncateContent(item.content)}
+        <div class="diary-author">${item.user_id}</div>
+      </div>
+    `
+    )
+    .join("");
 
   const photosHtml = photos
     .slice(0, 3)
@@ -49,13 +47,13 @@ async function HomeComponent() {
     .join("");
 
   const visitorsHtml = visitorComments
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) // 내림차순 정렬
-    .slice(0, 2)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) 
+    .slice(0, 2) 
     .map(
       item => `
       <div class="visitor-comment-item">
-        <div class="comment-content">${item.comment}</div>
-        <div class="comment-timestamp">${item.timestamp}</div>
+        <div class="comment-content">${item.content}</div>
+        <div class="comment-timestamp">${new Date(item.createdAt).toLocaleString()}</div>
       </div>
     `,
     )
@@ -63,7 +61,7 @@ async function HomeComponent() {
 
   return ` 
     <div class="home-container">
-     <div class="top-section">
+      <div class="top-section">
         <div class="Diary-section">
           <div class="Diary-title">
             Diary

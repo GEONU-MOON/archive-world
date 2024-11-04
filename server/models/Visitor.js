@@ -9,6 +9,10 @@ const visitorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  password: {
+    type: String,
+    required: true,
+  },
   writer_avatar: {
     type: String,
   },

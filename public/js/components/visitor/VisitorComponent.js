@@ -1,69 +1,177 @@
-function randomNickname() {
-  const firstNames = ["행복한", "귀찮은", "기분 좋은", "활기찬", "느긋한", "용감한", "신비로운", "총명한", "재빠른", "조용한"];
-  const lastNames = ["사자", "호랑이", "토끼", "고양이", "강아지", "늑대", "여우", "곰", "다람쥐", "부엉이"];
+let selectedAvatarUrl = getRandomAvatar(); 
 
-  const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-
-  return randomFirstName + " " + randomLastName;
-}
-
-function renderVisitorSays() {
-  // todo: 방명록 댓글 get 요청
-  const visitorSays = [
-    {
-      id: 1,
-      content: "안녕",
-      author: "행복한 토끼",
-      img: "01",
-      timestamp: "2024.08.05 14:00",
-    },
-    {
-      id: 2,
-      content: "안녕",
-      author: "행복한 고양이",
-      img: "01",
-      timestamp: "2024.08.06 14:00",
-    },
-    {
-      id: 3,
-      content: "안녕",
-      author: "느긋한 토끼",
-      img: "01",
-      timestamp: "2024.08.06 22:10",
-    },
+function getRandomAvatar() {
+  const bucketName = "pretzelworld-bucket"; 
+  const region = "ap-northeast-2"; 
+  const avatars = [
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/mario.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/crown.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/pengguin.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/nuguri.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/man.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/heart.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/fox.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/duck.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/coala.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/bomb.png`
   ];
 
-  const visitorSaysHTML = visitorSays
-    .map(
-      item => `
-    <div class="visitor-says-item">
-      <div class="visitor-info">
-        <span>no. ${item.id}</span>
-        <span>${item.author}</span>
-        <span class="visitor-writeAt">${item.timestamp}</span>
-      </div>
-      <div class="visitor-says-content">
-        <img src="/resource/images/visitor${item.img}.png" width="100" height="100" />
-        <p>${item.content}</p>
-      </div>
-    </div>  
-  `,
-    )
-    .join("");
-
-  return visitorSaysHTML;
+  const randomIndex = Math.floor(Math.random() * avatars.length);
+  return avatars[randomIndex];
 }
+
+async function renderVisitorSays() {
+  try {
+    const response = await fetch("/visitors/visitors-read");
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch visitor data");
+    }
+
+    const visitorSays = await response.json();
+
+    const visitorSaysHTML = visitorSays
+      .map(
+        (item) => `
+        <div class="visitor-says-item" id="visitor-item-${item._id}">
+          <div class="visitor-info">
+            <span>${item.writer}</span>
+            <span class="visitor-writeAt">${new Date(item.createdAt).toLocaleString()}</span>
+          </div>
+          <div class="visitor-says-content">
+            <img src="${item.writer_avatar}" width="100" height="100" alt="Visitor Avatar" />
+            <p id="visitor-content-${item._id}">${item.content}</p>
+          </div>
+          <div class="visitor-actions">
+            <button onclick="showEditForm('${item._id}', '${item.content}')">수정</button>
+            <button onclick="showDeleteForm('${item._id}')">삭제</button>
+          </div>
+          <div class="edit-password-form" id="edit-form-${item._id}" style="display: none;">
+            <textarea id="edit-content-${item._id}">${item.content}</textarea>
+            <input type="password" id="edit-password-${item._id}" placeholder="비밀번호 입력" required />
+            <button onclick="saveEditVisitorSay('${item._id}')">저장</button>
+            <button onclick="cancelEdit('${item._id}')">취소</button>
+          </div>
+          <div class="delete-password-form" id="delete-form-${item._id}" style="display: none;">
+            <input type="password" id="delete-password-${item._id}" placeholder="비밀번호 입력" required />
+            <button onclick="deleteVisitorSay('${item._id}')">삭제 확인</button>
+            <button onclick="cancelDelete('${item._id}')">취소</button>
+          </div>
+        </div>  
+      `
+      )
+      .join("");
+
+    document.querySelector(".visitor-says-container").innerHTML = visitorSaysHTML;
+  } catch (error) {
+    console.error("Error loading visitor data:", error);
+  }
+}
+
+function showEditForm(id, currentContent) {
+  document.getElementById(`edit-form-${id}`).style.display = "block";
+}
+
+function showDeleteForm(id) {
+  document.getElementById(`delete-form-${id}`).style.display = "block";
+}
+
+function cancelEdit(id) {
+  document.getElementById(`edit-form-${id}`).style.display = "none";
+}
+
+function cancelDelete(id) {
+  document.getElementById(`delete-form-${id}`).style.display = "none";
+}
+
+function saveEditVisitorSay(id) {
+  const newContent = document.getElementById(`edit-content-${id}`).value;
+  const password = document.getElementById(`edit-password-${id}`).value;
+
+  fetch(`/visitors/visitor-update/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content: newContent, currentPassword: password }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to update visitor");
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Visitor updated:", data);
+      renderVisitorSays(); // 변경 후 전체 리스트 다시 렌더링
+    })
+    .catch(error => {
+      console.error("Error updating visitor:", error);
+      alert("비밀번호가 올바르지 않습니다.");
+    });
+}
+
+function deleteVisitorSay(id) {
+  const password = document.getElementById(`delete-password-${id}`).value;
+
+  if (!confirm("정말 삭제하시겠습니까?")) return;
+
+  fetch(`/visitors/visitor-delete/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ currentPassword: password }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to delete visitor");
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Visitor deleted:", data);
+      document.getElementById(`visitor-item-${id}`).remove(); // 삭제된 항목만 제거
+    })
+    .catch(error => {
+      console.error("Error deleting visitor:", error);
+      alert("비밀번호가 올바르지 않습니다.");
+    });
+}
+
 
 function postVisitorSay(event) {
   event.preventDefault();
-  const inputData = document.getElementById("input-visitor-say").value;
-  let inputToHTML = inputData
-    .split("\n")
-    .map(line => `${line}`)
-    .join("<br>");
-  inputToHTML = `<span>${inputToHTML}</span>`;
-  console.log(inputToHTML);
+  const author = document.getElementById("input-visitor-author").value;
+  const password = document.getElementById("input-visitor-password").value;
+  const content = document.getElementById("input-visitor-say").value;
+
+  fetch("/visitors/add-visitor", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      visitor_no: Date.now(),
+      writer: author,
+      writer_avatar: selectedAvatarUrl, 
+      content: content,
+      password: password,
+    }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to post visitor");
+      }
+      return response.json();
+    })
+    .then(data => {
+      // console.log("Visitor added:", data);
+      renderVisitorSays(); 
+    })
+    .catch(error => {
+      // console.error("Error adding visitor:", error);
+    });
 }
 
 function VisitorComponent() {
@@ -71,27 +179,38 @@ function VisitorComponent() {
     <div class="visitor-container">
       <p>▶ 방명록을 작성해주세요 :)</p>
       <div class="visitor-wrapper">
-        <form id="form-visitor">
-          <div>
-            <img src="/resource/images/visitor01.png" width="125" height="125" />
-            <button id="btn-visitor-change">
-              <span>⟳</span>
+        <form id="form-visitor" onsubmit="postVisitorSay(event)">
+          <div class="visitor-image-section">
+            <img id="visitor-avatar" src="${selectedAvatarUrl}" width="125" height="125" />
+            <button type="button" id="btn-visitor-change" onclick="changeVisitorImage()">
+              <img src="/resource/images/reload.png" alt="새로고침 아이콘" width="16" height="16"/>
               <span>이미지 새로고침</span>
             </button>
           </div>
           <div class="visitor-input-wrapper">
-            <textarea id="input-visitor-say" cols="63"></textarea>
-            <p>
-              <span>작성자 : ${randomNickname()}</span>
-              <button type="submit" id="btn-visitor-send" onclick="postVisitorSay(event)">확인</button>
-            </p>
+            <div class="visitor-info-form">
+              <input type="text" id="input-visitor-author" placeholder="닉네임" required />
+              <input type="password" id="input-visitor-password" placeholder="비밀번호" required />
+            </div>
+            <textarea id="input-visitor-say" placeholder="내용을 입력하세요" required></textarea>
+            <div>
+              <button type="submit" id="btn-visitor-send">확인</button>
+            </div>
           </div>
         </form>
         <div class="visitor-says-container">
-          ${renderVisitorSays()}
+          <!-- 방명록 항목이 여기에 렌더링됩니다. -->
         </div>
       </div>
     </div>
   `;
-  return component;
+
+  renderVisitorSays();
+
+  return component; 
+}
+
+function changeVisitorImage() {
+  selectedAvatarUrl = getRandomAvatar(); 
+  document.getElementById("visitor-avatar").src = selectedAvatarUrl;
 }
