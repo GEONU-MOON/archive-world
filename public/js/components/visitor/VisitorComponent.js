@@ -1,3 +1,25 @@
+function getRandomAvatar() {
+  const bucketName = "pretzelworld-bucket"; // S3 버킷 이름
+  const region = "ap-northeast-2"; // S3 리전
+  const avatars = [
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/mario.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/crown.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/pengguin.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/nuguri.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/man.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/heart.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/fox.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/duck.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/coala.png`,
+    `https://${bucketName}.s3.${region}.amazonaws.com/avatars/bomb.png`
+  ];
+
+  const randomIndex = Math.floor(Math.random() * avatars.length);
+  return avatars[randomIndex];
+}
+
+
+
 async function renderVisitorSays() {
   try {
     console.log("방명록 데이터를 요청합니다...");
@@ -76,9 +98,10 @@ function VisitorComponent() {
       <div class="visitor-wrapper">
         <form id="form-visitor" onsubmit="postVisitorSay(event)">
           <div class="visitor-image-section">
-            <img src="/resource/images/visitor01.png" width="125" height="125" />
-            <button type="button" id="btn-visitor-change">
-              <span>⟳</span> 이미지 새로고침
+            <img id="visitor-avatar" src="${getRandomAvatar()}" width="125" height="125" />
+            <button type="button" id="btn-visitor-change" onclick="changeVisitorImage()">
+              <img src="/resource/images/reload.png" alt="새로고침 아이콘" width="16" height="16"/>
+              <span>이미지 새로고침</span>
             </button>
           </div>
           <div class="visitor-input-wrapper">
@@ -102,4 +125,8 @@ function VisitorComponent() {
   renderVisitorSays();
 
   return component; 
+}
+
+function changeVisitorImage() {
+  document.getElementById("visitor-avatar").src = getRandomAvatar();
 }
