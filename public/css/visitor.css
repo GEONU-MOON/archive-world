@@ -138,3 +138,61 @@
 .visitor-writeAt {
   color: #5f5f5f;
 }
+
+.visitor-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  padding-left: 30px;
+}
+
+.edit-password-form,
+.delete-password-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.edit-password-form textarea {
+  width: 100%;
+  height: 40px;
+  resize: none;
+  font-size: 14px;
+}
+
+.edit-password-form input,
+.delete-password-form input {
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.edit-password-form button,
+.delete-password-form button {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: none;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.visitor-says-item {
+  margin-top: 20px;
+  border-top: 1px solid gray;
+  padding-bottom: 20px;
+}
+
+.visitor-info {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 10px 20px;
+  background-color: #d9d9d9;
+}
+
+.visitor-says-container {
+  margin-top: 10px;
+}
