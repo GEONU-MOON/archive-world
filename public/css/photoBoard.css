@@ -4,10 +4,14 @@
   margin: 0 auto;
 }
 
-.photo-content-area {
-  overflow-y: auto;
-  max-height: 85%;
+.photo-board-content-wrapper {
+  overflow-y: auto; /* 전체 사진 목록에 스크롤을 적용 */
+  height: 83%; /* 화면 높이의 85%로 제한 */
   padding-right: 20px;
+}
+
+.photo-content-area {
+  margin-bottom: 20px; /* 게시물 사이 간격 */
 }
 
 .photo-post {
