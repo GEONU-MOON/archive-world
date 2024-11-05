@@ -85,7 +85,7 @@ router.put("/:photoId/edit", imageUploader.single("photo"), uploadToS3, async (r
     await photo.save();
     res.status(200).json({ message: "Photo updated successfully", photo });
   } catch (error) {
-    console.error("Error updating photo:", error); // 에러 로그 출력
+    // console.error("Error updating photo:", error); // 에러 로그 출력
     res.status(500).json({ error: "Failed to update photo" });
   }
 });
@@ -93,34 +93,34 @@ router.put("/:photoId/edit", imageUploader.single("photo"), uploadToS3, async (r
 
 router.delete("/:photoId/delete", async (req, res) => {
   try {
-    console.log("Starting photo delete process..."); // 시작 로그
+    // console.log("Starting photo delete process..."); // 시작 로그
 
     const currentUser = await findUser(req.headers.authorization);
     if (!currentUser) {
-      console.log("Unauthorized user - no valid token"); // 인증 실패 로그
+      // console.log("Unauthorized user - no valid token"); // 인증 실패 로그
       return res.status(403).json({ error: "Unauthorized user" });
     }
-    console.log("Authorized user:", currentUser.user_id); // 인증 성공 로그
+    // console.log("Authorized user:", currentUser.user_id); // 인증 성공 로그
 
     const { photoId } = req.params;
     const photo = await Photo.findById(photoId);
     
     if (!photo) {
-      console.log(`Photo not found with ID: ${photoId}`); // 사진 없음 로그
+      // console.log(`Photo not found with ID: ${photoId}`); // 사진 없음 로그
       return res.status(404).json({ error: "Photo not found" });
     }
-    console.log("Photo found:", photo); // 사진 존재 로그
+    // console.log("Photo found:", photo); // 사진 존재 로그
 
     if (photo.user_id !== currentUser.user_id) {
-      console.log("User is not authorized to delete this photo"); // 권한 없음 로그
+      // console.log("User is not authorized to delete this photo"); // 권한 없음 로그
       return res.status(403).json({ error: "You are not authorized to delete this photo" });
     }
 
     await Photo.findByIdAndDelete(photoId);
-    console.log("Photo deleted successfully:", photoId); // 삭제 성공 로그
+    // console.log("Photo deleted successfully:", photoId); // 삭제 성공 로그
     res.status(200).json({ message: "Photo deleted successfully" });
   } catch (error) {
-    console.error("Error deleting photo:", error); // 삭제 중 에러 로그
+    // console.error("Error deleting photo:", error); // 삭제 중 에러 로그
     res.status(500).json({ error: "Failed to delete photo" });
   }
 });
@@ -182,5 +182,40 @@ router.delete("/:photoId/comment/:commentIndex", async (req, res) => {
     res.status(500).json({ error: "Failed to delete comment" });
   }
 });
+
+// 댓글 수정 라우트
+router.put("/:photoId/comment/:commentIndex", async (req, res) => {
+  try {
+    const currentUser = await findUser(req.headers.authorization);
+    if (!currentUser) {
+      return res.status(403).json({ error: "Unauthorized user" });
+    }
+
+    const { photoId, commentIndex } = req.params;
+    const { content } = req.body;
+
+    const photo = await Photo.findById(photoId);
+    if (!photo) {
+      return res.status(404).json({ error: "Photo not found" });
+    }
+
+    const comment = photo.comments[commentIndex];
+    if (!comment || comment.user_id !== currentUser.user_id) {
+      return res.status(403).json({ error: "You are not authorized to edit this comment" });
+    }
+
+    // 댓글 내용 수정
+    comment.content = content;
+    comment.updatedAt = new Date();
+
+    await photo.save();
+
+    res.status(200).json({ message: "Comment updated successfully", comment });
+  } catch (error) {
+    // console.error("Error updating comment:", error);
+    res.status(500).json({ error: "Failed to update comment" });
+  }
+});
+
 
 module.exports = router;

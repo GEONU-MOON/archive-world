@@ -16,16 +16,19 @@ async function photoBoardContent() {
     .map(photoData => {
       const commentsHtml = (photoData.comments || [])
         .map(
-          comment => `
-          <div class="photo-comment-wrapper">
+          (comment, idx) => `
+          <div class="photo-comment-wrapper" id="comment-${photoData._id}-${idx}">
             <div class="photo-comment-info">
-              <span>no.${comment.no}</span>
-              <span>${comment.writer}</span>
+              <span>no.${idx + 1} ${comment.user_id}</span>
               <span id="photo-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
             </div>
             <div class="photo-comment-content">
               <img src="${comment.profileImageUrl || '/resource/images/default-avatar.png'}" width="100" height="100" />
-              <div id="photo-comment-content">${comment.content}</div>
+              <div>${comment.content}</div>
+              <div class="photo-comment-edit-wrapper">
+                <button onclick="editComment('${photoData._id}', ${idx})">수정</button>
+                <button onclick="deleteComment('${photoData._id}', ${idx})">삭제</button>
+              </div>
             </div>
           </div>`
         ).join("");
@@ -169,5 +172,112 @@ async function deletePhoto(photoId) {
     }
   } catch {
     alert("사진 삭제에 실패했습니다.");
+  }
+}
+
+// 댓글 추가 함수
+async function submitComment(event, photoId) {
+  event.preventDefault();
+  const commentInput = event.target.querySelector("input[name='photo-comment']");
+  const content = commentInput.value.trim();
+
+  if (!content) {
+    alert("댓글을 입력해 주세요.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/photos/${photoId}/comment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify({ content }),
+    });
+
+    if (response.ok) {
+      commentInput.value = "";
+      document.querySelector(".photo-board-content-wrapper").innerHTML = await photoBoardContent();
+    } else {
+      const errorData = await response.json();
+      alert(`댓글 작성 실패: ${errorData.error}`);
+    }
+  } catch {
+    alert("댓글 작성 중 오류가 발생했습니다.");
+  }
+}
+
+// 댓글 수정 함수
+function editComment(photoId, commentIndex) {
+  const commentElement = document.querySelector(`#comment-${photoId}-${commentIndex} .photo-comment-content div`);
+  const originalContent = commentElement.textContent;
+  commentElement.innerHTML = `<textarea id="edit-comment-content">${originalContent}</textarea>`;
+
+  const editWrapper = commentElement.nextElementSibling;
+  editWrapper.innerHTML = `
+    <button onclick="saveEditedComment('${photoId}', ${commentIndex})">저장</button>
+    <button onclick="cancelEditComment('${photoId}', ${commentIndex}, \`${originalContent}\`)">취소</button>
+  `;
+}
+
+// 댓글 수정 저장 함수
+async function saveEditedComment(photoId, commentIndex) {
+  const newContent = document.querySelector("#edit-comment-content").value;
+
+  try {
+    const response = await fetch(`/photos/${photoId}/comment/${commentIndex}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify({ content: newContent }),
+    });
+
+    if (response.ok) {
+      document.querySelector(".photo-board-content-wrapper").innerHTML = await photoBoardContent();
+    } else {
+      const errorData = await response.json();
+      alert(`댓글 수정 실패: ${errorData.error}`);
+    }
+  } catch {
+    alert("댓글 수정 중 오류가 발생했습니다.");
+  }
+}
+
+// 댓글 수정 취소 함수
+function cancelEditComment(photoId, commentIndex, originalContent) {
+  const commentElement = document.querySelector(`#comment-${photoId}-${commentIndex} .photo-comment-content div`);
+  commentElement.innerHTML = originalContent;
+
+  const editWrapper = commentElement.nextElementSibling;
+  editWrapper.innerHTML = `
+    <button onclick="editComment('${photoId}', ${commentIndex})">수정</button>
+    <button onclick="deleteComment('${photoId}', ${commentIndex})">삭제</button>
+  `;
+}
+
+// 댓글 삭제 함수
+async function deleteComment(photoId, commentIndex) {
+  if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
+
+  try {
+    const response = await fetch(`/photos/${photoId}/comment/${commentIndex}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.ok) {
+      document.querySelector(".photo-board-content-wrapper").innerHTML = await photoBoardContent();
+      alert("댓글이 성공적으로 삭제되었습니다.");
+    } else {
+      const errorData = await response.json();
+      alert(`댓글 삭제 실패: ${errorData.error}`);
+    }
+  } catch {
+    alert("댓글 삭제 중 오류가 발생했습니다.");
   }
 }
