@@ -30,12 +30,22 @@ router.post("/upload", imageUploader.single("photo"), (req, res, next) => upload
 
 router.get("/all", async (req, res) => {
   try {
-    const photos = await Photo.find({});
+    const photos = await Photo.find({}).lean(); // lean()을 사용하여 plain object로 변환
+
+   
+    for (let photo of photos) {
+      for (let comment of photo.comments) {
+        const user = await User.findOne({ user_id: comment.user_id }).lean();
+        comment.profileImageUrl = user ? user.user_avatar : "/resource/images/default-avatar.png"; // 기본 이미지 설정
+      }
+    }
+
     res.status(200).json(photos);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch photos" });
   }
 });
+
 
 router.get("/:photoId", async (req, res) => {
   try {

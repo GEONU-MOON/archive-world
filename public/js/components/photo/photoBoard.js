@@ -23,11 +23,11 @@ async function photoBoardContent() {
               <span id="photo-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
             </div>
             <div class="photo-comment-content">
-              <img src="${comment.profileImageUrl || '/resource/images/default-avatar.png'}" width="100" height="100" />
+              <img src="${comment.profileImageUrl || '/resource/images/default-avatar.png'}" class="comment-avatar" width="100" height="100" />
               <div>${comment.content}</div>
               <div class="photo-comment-edit-wrapper">
-                <button onclick="editComment('${photoData._id}', ${idx})">수정</button>
-                <button onclick="deleteComment('${photoData._id}', ${idx})">삭제</button>
+                <button id="btn-photo-comment-edit" onclick="editComment('${photoData._id}', ${idx})">수정</button>
+                <button id="btn-photo-comment-remove" onclick="deleteComment('${photoData._id}', ${idx})">삭제</button>
               </div>
             </div>
           </div>`
@@ -65,6 +65,7 @@ async function photoBoardContent() {
     })
     .join("");
 }
+
 
 // 전체 사진 보드
 async function photoBoard() {
@@ -216,8 +217,8 @@ function editComment(photoId, commentIndex) {
 
   const editWrapper = commentElement.nextElementSibling;
   editWrapper.innerHTML = `
-    <button onclick="saveEditedComment('${photoId}', ${commentIndex})">저장</button>
-    <button onclick="cancelEditComment('${photoId}', ${commentIndex}, \`${originalContent}\`)">취소</button>
+    <button id="btn-photo-comment-edit" onclick="saveEditedComment('${photoId}', ${commentIndex})">저장</button>
+    <button id="btn-photo-comment-remove" onclick="cancelEditComment('${photoId}', ${commentIndex}, \`${originalContent}\`)">취소</button>
   `;
 }
 
@@ -253,8 +254,8 @@ function cancelEditComment(photoId, commentIndex, originalContent) {
 
   const editWrapper = commentElement.nextElementSibling;
   editWrapper.innerHTML = `
-    <button onclick="editComment('${photoId}', ${commentIndex})">수정</button>
-    <button onclick="deleteComment('${photoId}', ${commentIndex})">삭제</button>
+    <button id="btn-photo-comment-edit" onclick="editComment('${photoId}', ${commentIndex})">수정</button>
+    <button id="btn-photo-comment-remove" onclick="deleteComment('${photoId}', ${commentIndex})">삭제</button>
   `;
 }
 
