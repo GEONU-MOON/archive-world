@@ -228,3 +228,20 @@ td#month:hover {
 #btn-diary-remove:hover {
   color: black;
 }
+
+#btn-diary-save,
+#btn-diary-cancel {
+  border: none;
+  background-color: transparent;
+  font-size: 18px;
+  color: #9a9a9a;
+}
+
+#btn-diary-save {
+  border-right: 2px solid #9a9a9a;
+}
+
+#btn-diary-save:hover,
+#btn-diary-cancel:hover {
+  color: black;
+}
