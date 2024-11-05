@@ -4,6 +4,8 @@ const Photo = require("../models/Photo");
 const User = require("../models/User");
 const { findUser } = require("../util/util");
 const { imageUploader, uploadToS3 } = require("../imageUploader");
+const multer = require("multer");
+const upload = multer(); // 파일이 없는 경우에도 req.body를 파싱할 수 있도록 설정
 
 router.post("/upload", imageUploader.single("photo"), (req, res, next) => uploadToS3(req, res, next, "photo"), async (req, res) => {
   try {
@@ -62,7 +64,7 @@ router.get("/:photoId", async (req, res) => {
   }
 });
 
-router.put("/:photoId/edit", imageUploader.single("photo"), uploadToS3, async (req, res) => {
+router.put("/:photoId/edit", upload.single("photo"), async (req, res, next) => {
   try {
     const currentUser = await findUser(req.headers.authorization);
     if (!currentUser) {
@@ -70,7 +72,8 @@ router.put("/:photoId/edit", imageUploader.single("photo"), uploadToS3, async (r
     }
 
     const { photoId } = req.params;
-    const { title, description } = req.body;
+    const title = req.body.title; // FormData에서 title 가져오기
+    const description = req.body.description; // FormData에서 description 가져오기
 
     const photo = await Photo.findById(photoId);
     if (!photo) {
@@ -85,20 +88,24 @@ router.put("/:photoId/edit", imageUploader.single("photo"), uploadToS3, async (r
     if (title) photo.title = title;
     if (description) photo.description = description;
 
-    // 새로운 이미지가 있으면 URL 업데이트
-    if (req.imageUrl) {
-      photo.imageUrl = req.imageUrl;
+    // 파일이 있을 경우에만 uploadToS3를 호출
+    if (req.file) {
+      await uploadToS3(req, res, next, "photo"); // 파일이 있는 경우에만 S3 업로드
+      if (req.imageUrl) {
+        photo.imageUrl = req.imageUrl;
+      }
     }
 
     photo.updatedAt = new Date();
-
     await photo.save();
+
     res.status(200).json({ message: "Photo updated successfully", photo });
   } catch (error) {
-    // console.error("Error updating photo:", error); // 에러 로그 출력
+    console.error("Error updating photo:", error); // 디버깅 로그
     res.status(500).json({ error: "Failed to update photo" });
   }
 });
+
 
 
 router.delete("/:photoId/delete", async (req, res) => {

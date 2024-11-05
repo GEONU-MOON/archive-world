@@ -1,13 +1,13 @@
+let photoDataList = []; // 외부에 선언하여 다른 함수에서도 접근 가능하도록 설정
+
 // 사진 목록을 불러오는 함수 (목록 부분만 반환)
 async function photoBoardContent() {
-  let photoDataList = [];
-
   try {
     const response = await fetch(`/photos/all`);
     if (!response.ok) {
       throw new Error(`Failed to fetch photo data: ${response.status} ${response.statusText}`);
     }
-    photoDataList = await response.json();
+    photoDataList = await response.json(); // photoDataList에 데이터 저장
   } catch (error) {
     return `<div class="error">사진 데이터를 불러오는 데 실패했습니다.</div>`;
   }
@@ -42,7 +42,7 @@ async function photoBoardContent() {
               <div class="date">${new Date(photoData.createdAt).toLocaleDateString()}</div>
             </div>
             <div class="photo-edit-wrapper">
-              <button id="btn-photo-edit" onclick="editPhoto('${photoData._id}', '${photoData.title}', '${photoData.description}')">수정</button>
+              <button id="btn-photo-edit" onclick="editPhoto('${photoData._id}')">수정</button>
               <button id="btn-photo-remove" onclick="deletePhoto('${photoData._id}')">삭제</button>
             </div>
           </div>
@@ -83,10 +83,15 @@ async function photoBoard() {
 }
 
 // 사진 수정 함수
-function editPhoto(photoId, currentTitle, currentDescription) {
+function editPhoto(photoId) {
   const photoElement = document.querySelector(`#photo-${photoId}`);
   const titleElement = photoElement.querySelector(".photo-title");
   const descriptionElement = photoElement.querySelector(".photo-content p");
+
+  // photoDataList에서 해당 ID의 데이터를 찾아 사용
+  const photoData = getPhotoDataById(photoId);
+  const currentTitle = photoData.title;
+  const currentDescription = photoData.description;
 
   // 제목과 설명을 수정 가능한 입력 폼으로 변경
   titleElement.innerHTML = `<input type="text" id="edit-photo-title" value="${currentTitle}">`;
@@ -95,10 +100,16 @@ function editPhoto(photoId, currentTitle, currentDescription) {
   // 저장 및 취소 버튼으로 대체
   const editWrapper = photoElement.querySelector(".photo-edit-wrapper");
   editWrapper.innerHTML = `
-    <button onclick="saveEditedPhoto('${photoId}')">저장</button>
-    <button onclick="cancelEditPhoto('${photoId}', '${currentTitle}', '${currentDescription.replace(/'/g, "\\'")}')">취소</button>
+    <button id="btn-photo-save" onclick="saveEditedPhoto('${photoId}')">저장</button>
+    <button id="btn-photo-cancel" onclick="cancelEditPhoto('${photoId}')">취소</button>
   `;
 }
+
+// photoDataList에서 ID로 데이터를 가져오는 헬퍼 함수
+function getPhotoDataById(photoId) {
+  return photoDataList.find(photo => photo._id === photoId);
+}
+
 
 // 사진 수정 내용 저장 함수
 async function saveEditedPhoto(photoId) {
@@ -113,9 +124,9 @@ async function saveEditedPhoto(photoId) {
     const response = await fetch(`/photos/${photoId}/edit`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`, // Content-Type 헤더 제거
       },
-      body: JSON.stringify({ title: newTitle, description: newDescription })
+      body: formData
     });
 
     if (response.ok) {
@@ -128,7 +139,7 @@ async function saveEditedPhoto(photoId) {
 
       const editWrapper = photoElement.querySelector(".photo-edit-wrapper");
       editWrapper.innerHTML = `
-        <button id="btn-photo-edit" onclick="editPhoto('${photoId}', '${newTitle}', '${newDescription.replace(/'/g, "\\'")}')">수정</button>
+        <button id="btn-photo-edit" onclick="editPhoto('${photoId}')">수정</button>
         <button id="btn-photo-remove" onclick="deletePhoto('${photoId}')">삭제</button>
       `;
     } else {
@@ -140,18 +151,28 @@ async function saveEditedPhoto(photoId) {
   }
 }
 
+
 // 사진 수정 취소 함수
-function cancelEditPhoto(photoId, originalTitle, originalDescription) {
+function cancelEditPhoto(photoId) {
   const photoElement = document.querySelector(`#photo-${photoId}`);
+
+  // photoDataList에서 해당 ID의 데이터를 찾아 원래 제목과 설명을 가져옴
+  const photoData = getPhotoDataById(photoId);
+  const originalTitle = photoData.title;
+  const originalDescription = photoData.description;
+
+  // 제목과 설명을 원래 값으로 복원
   photoElement.querySelector(".photo-title").innerHTML = originalTitle;
   photoElement.querySelector(".photo-content p").innerHTML = originalDescription;
 
+  // 버튼을 원래대로 복원
   const editWrapper = photoElement.querySelector(".photo-edit-wrapper");
   editWrapper.innerHTML = `
-    <button id="btn-photo-edit" onclick="editPhoto('${photoId}', '${originalTitle}', '${originalDescription.replace(/'/g, "\\'")}')">수정</button>
+    <button id="btn-photo-edit" onclick="editPhoto('${photoId}')">수정</button>
     <button id="btn-photo-remove" onclick="deletePhoto('${photoId}')">삭제</button>
   `;
 }
+
 
 // 사진 삭제 함수
 async function deletePhoto(photoId) {

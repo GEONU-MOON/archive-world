@@ -185,3 +185,22 @@
   margin-left: auto;
   display: flex;
 }
+
+
+#btn-photo-save,
+#btn-photo-cancel {
+  border: none;
+  background-color: transparent;
+  font-size: 15px;
+  color: #9a9a9a;
+  padding: 8px 8px;
+}
+
+#btn-photo-save {
+  border-right: 2px solid #9a9a9a;
+}
+
+#btn-photo-save:hover,
+#btn-photo-cancel:hover {
+  color: black;
+}
