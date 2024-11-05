@@ -92,12 +92,11 @@
 .photo-gallery {
   display: flex;
   align-items: flex-start;
-  margin-top: 1%;
+  margin-top: 3%;
   gap: 20px;
 }
 
 .photo-image {
-  margin-top: 3%;
   width: 30%;
   height: auto;
 }
