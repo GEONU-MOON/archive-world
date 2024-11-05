@@ -127,8 +127,8 @@ async function editDiary(diaryId, currentContentElement) {
   // 수정 완료 및 취소 버튼 추가
   const editWrapper = currentContentElement.nextElementSibling;
   editWrapper.innerHTML = `
-    <button onclick="saveEditedDiary('${diaryId}')">저장</button>
-    <button onclick="cancelEditDiary('${diaryId}', '${originalContent}')">취소</button>
+    <button id="btn-diary-save" onclick="saveEditedDiary('${diaryId}')">저장</button>
+    <button id="btn-diary-cancel" onclick="cancelEditDiary('${diaryId}', '${originalContent}')">취소</button>
   `;
 }
 
@@ -158,8 +158,8 @@ async function saveEditedDiary(diaryId) {
   // 수정 완료 후 버튼을 원래대로 변경
   const editWrapper = document.querySelector(`#diary-${diaryId} .diary-edit-wrapper`);
   editWrapper.innerHTML = `
-    <button onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
-    <button onclick="deleteDiary('${diaryId}')">삭제</button>
+    <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
+    <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
   `;
 }
 
@@ -173,8 +173,8 @@ function cancelEditDiary(diaryId, encodedOriginalContent) {
   // 버튼을 원래 상태로 복구
   const editWrapper = contentElement.nextElementSibling;
   editWrapper.innerHTML = `
-    <button onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
-    <button onclick="deleteDiary('${diaryId}')">삭제</button>
+    <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
+    <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
   `;
 }
 
