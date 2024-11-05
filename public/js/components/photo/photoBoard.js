@@ -1,18 +1,19 @@
-async function photoBoard() {
+// 사진 목록을 불러오는 함수 (목록 부분만 반환)
+async function photoBoardContent() {
   let photoDataList = [];
 
   try {
-    const response = await fetch(`/photos/all`); // 서버에서 모든 사진 데이터를 가져옴
+    const response = await fetch(`/photos/all`);
     if (!response.ok) {
       throw new Error(`Failed to fetch photo data: ${response.status} ${response.statusText}`);
     }
-    photoDataList = await response.json(); // 전체 사진 데이터를 배열 형태로 가져옴
+    photoDataList = await response.json();
   } catch (error) {
-    console.error("Error fetching photo data:", error);
+    // console.error("Error fetching photo data:", error);
     return `<div class="error">사진 데이터를 불러오는 데 실패했습니다.</div>`;
   }
 
-  const photosHtml = photoDataList
+  return photoDataList
     .map(photoData => {
       const commentsHtml = (photoData.comments || [])
         .map(
@@ -63,7 +64,11 @@ async function photoBoard() {
       `;
     })
     .join("");
+}
 
+// 전체 사진 보드
+async function photoBoard() {
+  const photosHtml = await photoBoardContent();
   return `
     <div class="photo-board-container">
       <div class="photo-post"> 
@@ -76,4 +81,26 @@ async function photoBoard() {
   `;
 }
 
+// 사진 삭제 함수
+async function deletePhoto(photoId) {
+  try {
+    const response = await fetch(`/photos/${photoId}/delete`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
+    });
 
+    if (response.ok) {
+      alert("사진이 성공적으로 삭제되었습니다!");
+      const photoBoardContainer = document.querySelector(".photo-board-content-wrapper");
+      photoBoardContainer.innerHTML = await photoBoardContent();
+    } else {
+      const errorData = await response.json();
+      alert(`사진 삭제에 실패했습니다: ${errorData.error}`);
+    }
+  } catch (error) {
+    // console.error("사진 삭제 중 오류가 발생했습니다:", error);
+    alert("사진 삭제에 실패했습니다.");
+  }
+}

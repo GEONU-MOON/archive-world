@@ -93,28 +93,38 @@ router.put("/:photoId/edit", imageUploader.single("photo"), uploadToS3, async (r
 
 router.delete("/:photoId/delete", async (req, res) => {
   try {
+    console.log("Starting photo delete process..."); // 시작 로그
+
     const currentUser = await findUser(req.headers.authorization);
     if (!currentUser) {
+      console.log("Unauthorized user - no valid token"); // 인증 실패 로그
       return res.status(403).json({ error: "Unauthorized user" });
     }
+    console.log("Authorized user:", currentUser.user_id); // 인증 성공 로그
 
     const { photoId } = req.params;
-
     const photo = await Photo.findById(photoId);
+    
     if (!photo) {
+      console.log(`Photo not found with ID: ${photoId}`); // 사진 없음 로그
       return res.status(404).json({ error: "Photo not found" });
     }
+    console.log("Photo found:", photo); // 사진 존재 로그
 
     if (photo.user_id !== currentUser.user_id) {
+      console.log("User is not authorized to delete this photo"); // 권한 없음 로그
       return res.status(403).json({ error: "You are not authorized to delete this photo" });
     }
 
     await Photo.findByIdAndDelete(photoId);
+    console.log("Photo deleted successfully:", photoId); // 삭제 성공 로그
     res.status(200).json({ message: "Photo deleted successfully" });
   } catch (error) {
+    console.error("Error deleting photo:", error); // 삭제 중 에러 로그
     res.status(500).json({ error: "Failed to delete photo" });
   }
 });
+
 
 router.post("/:photoId/comment", async (req, res) => {
   try {
