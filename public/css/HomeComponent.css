@@ -48,16 +48,26 @@
 }
 
 .home-photo-gallery {
-  margin: 3%;
+  margin: 3% auto;
   display: flex;
   gap: 10px;
   justify-content: space-between;
 }
 
 .home-photo-gallery img {
-  height: 100px;
-  width: 100px;
+  height: 105px;
+  width: 105px;
+  border-radius: 10px; /* 이미지 모서리를 둥글게 */
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5); /* 더 두꺼운 그림자와 어두운 불투명도 */
+  transition: transform 0.3s, box-shadow 0.3s;
 }
+
+.home-photo-gallery img:hover {
+  transform: scale(1.05);
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6); /* 호버 시 더 강한 그림자 효과 */
+}
+
+
 
 .miniroom-section {
   width: 90%;
