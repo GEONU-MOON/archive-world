@@ -1,4 +1,4 @@
-
+// 오늘 날짜의 다이어리 링크를 설정하는 함수
 const setDiaryLinkToToday = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -9,12 +9,29 @@ const setDiaryLinkToToday = () => {
   return `/diary/${formattedDate}`;
 };
 
+// 방문자 카운트를 가져와 화면에 업데이트하는 함수
+async function updateVisitorCount() {
+  try {
+    const response = await fetch("/click/clicks"); // 클릭 카운트 API 호출
+    if (!response.ok) throw new Error("Failed to fetch click counts");
+    const data = await response.json();
+    document.getElementById("visitor-today").textContent = ` ${data.todayCount} `;
+    document.getElementById("visitor-total").textContent = `Total ${data.totalCount}`;
+  } catch (error) {
+    console.error("Error fetching click counts:", error);
+  }
+}
+
+// 메인 컴포넌트를 설정하는 함수
 async function MainComponent() {
   const mainLayout = `
     <div class="wrapper">
       <div class="wrapper-line">
         <div class="profile-wrapper">
-          <div id="visitor-count">Today <span id="visitor-today">&nbsp${null}&nbsp</span> | Total ${null}</div>
+          <div id="visitor-count">
+            Today&nbsp;<span id="visitor-today">4</span>&nbsp; &nbsp; <span id="visitor-total">4</span>
+
+          </div>
           <div class="profile"></div>
         </div>
         <div class="main-wrapper">
@@ -25,7 +42,7 @@ async function MainComponent() {
           <div class="content-area"> 
             <div class="white-box"></div>
             <div class="tab-container">
-              <div class="active-tab-item" >
+              <div class="active-tab-item">
                 <a href="/" data-link>홈</a>
               </div>
               <div class="tab-item">
@@ -35,7 +52,7 @@ async function MainComponent() {
                 <a href="/photo/board" data-link>포토</a>
               </div>
               <div class="tab-item">
-                <a href="/visitor"data-link>방명록</a>
+                <a href="/visitor" data-link>방명록</a>
               </div>
             </div>
           </div>
@@ -46,9 +63,14 @@ async function MainComponent() {
 
   document.querySelector("#app").innerHTML = mainLayout;
 
+  // 프로필 컴포넌트를 로드하고 렌더링
   await loadComponent("/js/components/common/Profile.js");
   const profileContent = document.querySelector(".profile");
   profileContent.innerHTML = Profile();
+
+  // 방문자 카운트 업데이트 호출
+  updateVisitorCount();
 }
 
+// 메인 컴포넌트 함수 호출
 MainComponent();
