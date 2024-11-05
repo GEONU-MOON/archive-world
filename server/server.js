@@ -7,6 +7,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
 const diaryRoutes = require("./routes/diaryRoutes");
 const photoRoutes = require("./routes/photoRoutes"); 
+const clicksRoutes = require("./routes/clickCountRoutes");
 
 const PORT = process.env.PORT || 3000;
 
@@ -24,6 +25,7 @@ app.use(profileRoutes);
 app.use("/visitors", visitorRoutes);
 app.use("/api/diary", diaryRoutes);
 app.use("/photos", photoRoutes); 
+app.use("/click", clicksRoutes);
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));
