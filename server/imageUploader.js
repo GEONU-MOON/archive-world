@@ -18,7 +18,7 @@ const imageUploader = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
 });
 
-async function uploadToS3(req, res, next) {
+async function uploadToS3(req, res, next, folder = "profile") {
   const file = req.file;
   if (!file) {
     console.warn("No file uploaded.");
@@ -27,9 +27,8 @@ async function uploadToS3(req, res, next) {
 
   const params = {
     Bucket: process.env.AWS_S3_BUCKET,
-    Key: `profile/${Date.now()}_${file.originalname}`,
+    Key: `${folder}/${Date.now()}_${file.originalname}`, // 동적으로 폴더 지정
     Body: file.buffer,
-    //ACL: "public-read", // 권한 설정 확인
     ContentType: file.mimetype,
   };
 
@@ -42,9 +41,10 @@ async function uploadToS3(req, res, next) {
     req.imageUrl = imageUrl;
     next();
   } catch (err) {
-    console.error("Error during S3 upload:", err); // 에러 메시지 출력
+    console.error("Error during S3 upload:", err);
     return res.status(500).send("Error uploading file.");
   }
 }
+
 
 module.exports = { imageUploader, uploadToS3 };

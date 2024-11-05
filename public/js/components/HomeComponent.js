@@ -1,6 +1,7 @@
 async function HomeComponent() {
   let diaryContents = [];
   let visitorComments = [];
+  let photos = [];
 
   try {
     const diaryResponse = await fetch("/api/diary/all");
@@ -12,25 +13,26 @@ async function HomeComponent() {
     if (visitorResponse.ok) {
       visitorComments = await visitorResponse.json();
     }
+
+    const photoResponse = await fetch("/photos/all"); // 사진 데이터 호출
+    if (photoResponse.ok) {
+      photos = await photoResponse.json();
+    }
   } catch (error) {
     console.error("Error fetching data:", error);
   }
 
-  const photos = [
-    "/resource/images/elephant.jpeg",
-    "/resource/images/cute.jpeg",
-    "/resource/images/soom.jpeg",
-    "/resource/images/elephant.jpeg",
-  ];
-
   const miniroomImage = "/resource/images/mini.png";
 
-  const truncateContent = (content, length = 15) =>
-    content.replace(/<[^>]*>/g, "").slice(0, length);
+  const truncateContent = (content, length = 15) => {
+    const plainText = content.replace(/<[^>]*>/g, ""); // HTML 태그 제거
+    return plainText.length > length ? plainText.slice(0, length) + "..." : plainText;
+  };
+  
 
   const diaryHtml = diaryContents
-    .sort((a, b) => new Date(b.date) - new Date(a.date)) 
-    .slice(0, 3) 
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 3)
     .map(
       item => `
       <div class="diary-item">
@@ -41,14 +43,16 @@ async function HomeComponent() {
     )
     .join("");
 
+  // 최신 3개의 사진만 선택하여 HTML로 변환
   const photosHtml = photos
+    .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
     .slice(0, 3)
-    .map(photo => `<img src="${photo}">`)
+    .map(photo => `<img src="${photo.imageUrl}" alt="${photo.title}">`)
     .join("");
 
   const visitorsHtml = visitorComments
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) 
-    .slice(0, 2) 
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 2)
     .map(
       item => `
       <div class="visitor-comment-item">

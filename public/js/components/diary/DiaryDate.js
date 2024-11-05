@@ -6,6 +6,13 @@ function checkToday(year, month, day) {
   return false;
 }
 
+function encodeHTML(html) {
+  const div = document.createElement("div");
+  div.innerText = html;
+  return div.innerHTML;
+}
+
+
 function getDateTemplate(year, month) {
   const lastDates = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
@@ -112,18 +119,20 @@ async function deleteDiary(diaryId) {
 }
 
 async function editDiary(diaryId, currentContentElement) {
-  const originalContent = currentContentElement.innerHTML;
-
-  // 편집 가능한 입력 폼으로 다이어리 내용을 변경
-  currentContentElement.innerHTML = `<textarea id="edit-diary-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
+  const originalContent = encodeURIComponent(currentContentElement.innerHTML); // 안전한 인코딩
   
+  // 다이어리 내용을 편집 가능한 입력 폼으로 변경
+  currentContentElement.innerHTML = `<textarea id="edit-diary-content">${decodeURIComponent(originalContent).replace(/<br>/g, "\n")}</textarea>`;
+
   // 수정 완료 및 취소 버튼 추가
   const editWrapper = currentContentElement.nextElementSibling;
   editWrapper.innerHTML = `
-    <button onclick="saveEditedDiary('${diaryId}')">저장</button>
-    <button onclick="cancelEditDiary('${diaryId}', '${originalContent.replace(/'/g, "\\'")}')">취소</button>
+    <button id="btn-diary-save" onclick="saveEditedDiary('${diaryId}')">저장</button>
+    <button id="btn-diary-cancel" onclick="cancelEditDiary('${diaryId}', '${originalContent}')">취소</button>
   `;
 }
+
+
 
 async function saveEditedDiary(diaryId) {
   const newContent = document.querySelector("#edit-diary-content").value;
@@ -149,21 +158,23 @@ async function saveEditedDiary(diaryId) {
   // 수정 완료 후 버튼을 원래대로 변경
   const editWrapper = document.querySelector(`#diary-${diaryId} .diary-edit-wrapper`);
   editWrapper.innerHTML = `
-    <button onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
-    <button onclick="deleteDiary('${diaryId}')">삭제</button>
+    <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
+    <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
   `;
 }
 
-function cancelEditDiary(diaryId, originalContent) {
+function cancelEditDiary(diaryId, encodedOriginalContent) {
+  const originalContent = decodeURIComponent(encodedOriginalContent); // 안전한 복원
+
   // 수정 취소 시 원래 내용으로 복구
   const contentElement = document.querySelector(`#diary-${diaryId} .diary-content span`);
   contentElement.innerHTML = originalContent;
 
-  // 수정 취소 후 버튼을 원래대로 변경
+  // 버튼을 원래 상태로 복구
   const editWrapper = contentElement.nextElementSibling;
   editWrapper.innerHTML = `
-    <button onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
-    <button onclick="deleteDiary('${diaryId}')">삭제</button>
+    <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
+    <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
   `;
 }
 
@@ -283,8 +294,8 @@ async function editComment(diaryId, commentIndex, originalContentElement) {
   const editWrapper = originalContentElement.nextElementSibling;
   if (editWrapper) {
     editWrapper.innerHTML = `
-      <button onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
-      <button onclick="cancelEditComment('${diaryId}', ${commentIndex}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
+      <button id="btn-diary-save" onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
+      <button id="btn-diary-cancel" onclick="cancelEditComment('${diaryId}', ${commentIndex}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
     `;
     // console.log("Save and cancel buttons added");
   } else {

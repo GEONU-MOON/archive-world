@@ -4,10 +4,14 @@
   margin: 0 auto;
 }
 
-.photo-content-area {
-  overflow-y: auto;
-  max-height: 85%;
+.photo-board-content-wrapper {
+  overflow-y: auto; /* 전체 사진 목록에 스크롤을 적용 */
+  height: 83%; /* 화면 높이의 85%로 제한 */
   padding-right: 20px;
+}
+
+.photo-content-area {
+  margin-bottom: 20px; /* 게시물 사이 간격 */
 }
 
 .photo-post {
@@ -88,14 +92,27 @@
 .photo-gallery {
   display: flex;
   align-items: flex-start;
-  margin-top: 1%;
+  margin-top: 3%;
   gap: 20px;
 }
 
 .photo-image {
-  margin-top: 3%;
+  margin-left: 10px;
   width: 30%;
   height: auto;
+  border-radius: 10%;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid #e0e0e0;
+  padding: 5px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0); /* 부드러운 그라데이션 배경 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative; /* 반짝임 효과 추가를 위한 설정 */
+  overflow: hidden; /* 반짝임 효과를 위한 설정 */
+}
+
+.photo-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .photo-content {
@@ -159,4 +176,56 @@
   display: flex;
   align-items: center;
   padding: 10px;
+}
+
+#btn-photo-comment-edit,
+#btn-photo-comment-remove {
+  border: none;
+  background-color: transparent;
+  font-size: 13px;
+  color: #9a9a9a;
+}
+
+#btn-photo-comment-edit {
+  border-right: 2px solid #9a9a9a;
+}
+
+#btn-photo-comment-edit:hover,
+#btn-photo-comment-remove:hover {
+  color: black;
+}
+
+.photo-comment-edit-wrapper {
+  margin-left: auto;
+  display: flex;
+}
+
+
+#btn-photo-save,
+#btn-photo-cancel {
+  border: none;
+  background-color: transparent;
+  font-size: 15px;
+  color: #9a9a9a;
+  padding: 8px 8px;
+}
+
+#btn-photo-save {
+  border-right: 2px solid #9a9a9a;
+}
+
+#btn-photo-save:hover,
+#btn-photo-cancel:hover {
+  color: black;
+}
+
+.comment-avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10%; 
+  border: 2px solid #e0e0e0; /* 연한 테두리 */
+  margin-right: 5px;
+  padding: 2px; /* 이미지와 테두리 사이의 여백 */
+  background-color: white; /* 배경색 추가 */
 }

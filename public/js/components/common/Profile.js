@@ -128,7 +128,7 @@ function Profile() {
     document.getElementById("btn-photo-upload").addEventListener("click", handleUploadProfile);
   };
 
-  const text = "🔥 취준";
+  const text = "🥶 댕춥다";
   const textIntro = "ㄱI억ㄴrㄴI?<br/>너와 ㄴr의 <br/>ㅆr이월드..";
   const music = "와르르 - 콜드(Colde)";
   const content = `
