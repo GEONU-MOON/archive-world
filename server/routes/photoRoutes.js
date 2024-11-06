@@ -38,7 +38,7 @@ router.get("/all", async (req, res) => {
     for (let photo of photos) {
       for (let comment of photo.comments) {
         const user = await User.findOne({ user_id: comment.user_id }).lean();
-        comment.profileImageUrl = user ? user.user_avatar : "/resource/images/default-avatar.png"; // 기본 이미지 설정
+        comment.profileImageUrl = user ? user.user_avatar : "/resource/images/profile.png"; // 기본 이미지 설정
       }
     }
 
@@ -145,13 +145,19 @@ router.delete("/:photoId/delete", async (req, res) => {
 
 router.post("/:photoId/comment", async (req, res) => {
   try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
+    const authorization = req.headers.authorization;
+    let currentUser = null;
+
+    if (authorization) {
+      currentUser = await findUser(authorization);
     }
 
     const { photoId } = req.params;
-    const { content } = req.body;
+    const { content, user_id, password } = req.body;
+
+    if (!content || (!currentUser && (!user_id || !password))) {
+      return res.status(400).json({ error: "Content, user_id, and password are required for non-members" });
+    }
 
     const photo = await Photo.findById(photoId);
     if (!photo) {
@@ -159,12 +165,14 @@ router.post("/:photoId/comment", async (req, res) => {
     }
 
     const newComment = {
-      user_id: currentUser.user_id,
+      user_id: currentUser ? currentUser.user_id : user_id,
       content,
       createdAt: new Date(),
+      password: currentUser ? undefined : password,
+      isMember: !!currentUser,
     };
-    photo.comments.push(newComment);
 
+    photo.comments.push(newComment);
     await photo.save();
     res.status(201).json({ message: "Comment added successfully", comment: newComment });
   } catch (error) {
@@ -172,14 +180,17 @@ router.post("/:photoId/comment", async (req, res) => {
   }
 });
 
+
 router.delete("/:photoId/comment/:commentIndex", async (req, res) => {
   try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
+    const authorization = req.headers.authorization;
+    let currentUser = null;
+    if (authorization) {
+      currentUser = await findUser(authorization);
     }
 
     const { photoId, commentIndex } = req.params;
+    const { password } = req.body;
 
     const photo = await Photo.findById(photoId);
     if (!photo) {
@@ -187,8 +198,18 @@ router.delete("/:photoId/comment/:commentIndex", async (req, res) => {
     }
 
     const comment = photo.comments[commentIndex];
-    if (!comment || comment.user_id !== currentUser.user_id) {
-      return res.status(403).json({ error: "You are not authorized to delete this comment" });
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    if (comment.isMember) {
+      if (!currentUser || currentUser.user_id !== comment.user_id) {
+        return res.status(403).json({ error: "Unauthorized user" });
+      }
+    } else {
+      if (password !== comment.password) {
+        return res.status(403).json({ error: "Incorrect password" });
+      }
     }
 
     photo.comments.splice(commentIndex, 1);
@@ -200,16 +221,17 @@ router.delete("/:photoId/comment/:commentIndex", async (req, res) => {
   }
 });
 
-// 댓글 수정 라우트
+
 router.put("/:photoId/comment/:commentIndex", async (req, res) => {
   try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
+    const authorization = req.headers.authorization;
+    let currentUser = null;
+    if (authorization) {
+      currentUser = await findUser(authorization);
     }
 
     const { photoId, commentIndex } = req.params;
-    const { content } = req.body;
+    const { content, password } = req.body;
 
     const photo = await Photo.findById(photoId);
     if (!photo) {
@@ -217,22 +239,30 @@ router.put("/:photoId/comment/:commentIndex", async (req, res) => {
     }
 
     const comment = photo.comments[commentIndex];
-    if (!comment || comment.user_id !== currentUser.user_id) {
-      return res.status(403).json({ error: "You are not authorized to edit this comment" });
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
     }
 
-    // 댓글 내용 수정
+    if (comment.isMember) {
+      if (!currentUser || currentUser.user_id !== comment.user_id) {
+        return res.status(403).json({ error: "Unauthorized user" });
+      }
+    } else {
+      if (password !== comment.password) {
+        return res.status(403).json({ error: "Incorrect password" });
+      }
+    }
+
     comment.content = content;
     comment.updatedAt = new Date();
-
     await photo.save();
 
     res.status(200).json({ message: "Comment updated successfully", comment });
   } catch (error) {
-    // console.error("Error updating comment:", error);
     res.status(500).json({ error: "Failed to update comment" });
   }
 });
+
 
 
 module.exports = router;

@@ -15,8 +15,7 @@ async function photoBoardContent() {
   return photoDataList
     .map(photoData => {
       const commentsHtml = (photoData.comments || [])
-        .map(
-          (comment, idx) => `
+        .map((comment, idx) => `
           <div class="photo-comment-wrapper" id="comment-${photoData._id}-${idx}">
             <div class="photo-comment-info">
               <span>no.${idx + 1} ${comment.user_id}</span>
@@ -52,14 +51,23 @@ async function photoBoardContent() {
               <p>${photoData.description}</p>
             </div>
           </div>
-          <div class="photo-comment-container">
-            <form class="form-photo-comment" onsubmit="submitComment(event, '${photoData._id}')">
-              <label>댓글</label>
-              <input type="text" name="photo-comment" required />
-              <button type="submit">확인</button>
-            </form>
-            ${commentsHtml}
-          </div>
+        <div class="photo-comment-container">
+        
+<form class="form-photo-comment ${!isLoggedIn() ? 'logged-out' : ''}" onsubmit="submitComment(event, '${photoData._id}')">
+  <label>댓글</label>
+  <input type="text" name="photo-comment" class="comment-input" placeholder="댓글 입력" required />
+
+  ${!isLoggedIn() ? `
+    <input type="text" name="user-id" class="comment-user-id" placeholder="아이디" required />
+    <input type="password" name="user-password" class="comment-user-password" placeholder="비밀번호" required />
+  ` : ""}
+
+  <button type="submit" class="comment-submit-button">확인</button>
+</form>
+
+          ${commentsHtml}
+        </div>
+
         </div>
       `;
     })
@@ -203,6 +211,19 @@ async function submitComment(event, photoId) {
   const commentInput = event.target.querySelector("input[name='photo-comment']");
   const content = commentInput.value.trim();
 
+  let userId = null;
+  let password = null;
+
+  if (!isLoggedIn()) {
+    userId = event.target.querySelector("input[name='user-id']").value.trim();
+    password = event.target.querySelector("input[name='user-password']").value.trim();
+
+    if (!userId || !password) {
+      alert("아이디와 비밀번호를 입력해 주세요.");
+      return;
+    }
+  }
+
   if (!content) {
     alert("댓글을 입력해 주세요.");
     return;
@@ -213,13 +234,17 @@ async function submitComment(event, photoId) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }),
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, user_id: userId, password: password }),
     });
 
     if (response.ok) {
       commentInput.value = "";
+      if (!isLoggedIn()) {
+        event.target.querySelector("input[name='user-id']").value = "";
+        event.target.querySelector("input[name='user-password']").value = "";
+      }
       document.querySelector(".photo-board-content-wrapper").innerHTML = await photoBoardContent();
     } else {
       const errorData = await response.json();
@@ -229,6 +254,7 @@ async function submitComment(event, photoId) {
     alert("댓글 작성 중 오류가 발생했습니다.");
   }
 }
+
 
 // 댓글 수정 함수
 function editComment(photoId, commentIndex) {
@@ -240,21 +266,23 @@ function editComment(photoId, commentIndex) {
   editWrapper.innerHTML = `
     <button id="btn-photo-comment-edit" onclick="saveEditedComment('${photoId}', ${commentIndex})">저장</button>
     <button id="btn-photo-comment-remove" onclick="cancelEditComment('${photoId}', ${commentIndex}, \`${originalContent}\`)">취소</button>
+    ${!isLoggedIn() ? `<input type="password" id="comment-password" placeholder="비밀번호">` : ""}
   `;
 }
 
 // 댓글 수정 저장 함수
 async function saveEditedComment(photoId, commentIndex) {
   const newContent = document.querySelector("#edit-comment-content").value;
+  const password = document.querySelector("#comment-password")?.value || null;
 
   try {
     const response = await fetch(`/photos/${photoId}/comment/${commentIndex}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }),
       },
-      body: JSON.stringify({ content: newContent }),
+      body: JSON.stringify({ content: newContent, password }),
     });
 
     if (response.ok) {
@@ -282,14 +310,18 @@ function cancelEditComment(photoId, commentIndex, originalContent) {
 
 // 댓글 삭제 함수
 async function deleteComment(photoId, commentIndex) {
+  const password = !isLoggedIn() ? prompt("비밀번호를 입력하세요:") : null;
+
   if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
 
   try {
     const response = await fetch(`/photos/${photoId}/comment/${commentIndex}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+        ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }),
       },
+      body: JSON.stringify({ password }),
     });
 
     if (response.ok) {
@@ -302,4 +334,9 @@ async function deleteComment(photoId, commentIndex) {
   } catch {
     alert("댓글 삭제 중 오류가 발생했습니다.");
   }
+}
+
+// 로그인 상태를 확인하는 함수
+function isLoggedIn() {
+  return !!sessionStorage.getItem("accessToken");
 }
