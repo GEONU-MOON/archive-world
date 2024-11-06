@@ -1,7 +1,7 @@
 node_modules
 
 .env
-/public/resource/
+
 
 
 .DS_Store
