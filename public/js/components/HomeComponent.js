@@ -29,6 +29,15 @@ async function HomeComponent() {
     return plainText.length > length ? plainText.slice(0, length) + "..." : plainText;
   };
   
+  const setDiaryLinkToToday = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const formattedDate = `${year}${month}${day}`;
+
+    return `/diary/${formattedDate}`;
+  };
 
   const diaryHtml = diaryContents
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -43,7 +52,6 @@ async function HomeComponent() {
     )
     .join("");
 
-  // 최신 3개의 사진만 선택하여 HTML로 변환
   const photosHtml = photos
     .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
     .slice(0, 3)
@@ -68,7 +76,7 @@ async function HomeComponent() {
       <div class="top-section">
         <div class="Diary-section">
           <div class="Diary-title">
-            Diary
+            <a href="${setDiaryLinkToToday()}" data-link>Diary</a>
           </div>
           <div class="Diary-show"> 
             ${diaryHtml}
@@ -76,7 +84,7 @@ async function HomeComponent() {
         </div>
         <div class="home-photo-section">
           <div class="home-photo-title">
-            Photo
+            <a href="/photo/board" data-link>Photo</a>
           </div>
           <div class="home-photo-gallery">
             ${photosHtml}
@@ -93,7 +101,7 @@ async function HomeComponent() {
       </div>
       <div class="visitor-section">
         <div class="visitor-title">
-          What Visitors Say
+          <a href="/visitor" data-link>What Visitors Say</a>
         </div> 
         <div class="visitor-comment">
           ${visitorsHtml}
@@ -102,3 +110,4 @@ async function HomeComponent() {
     </div>
   `;
 }
+
