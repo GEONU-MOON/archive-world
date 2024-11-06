@@ -25,6 +25,11 @@
   border-bottom: 5px solid #ccc;
 }
 
+.Diary-title a {
+  color: inherit; /* 부모 요소의 색상 사용 */
+  text-decoration: none; /* 밑줄 제거 */
+}
+
 .diary-item {
   width: 90%;
   border-bottom: 1px solid black;
@@ -45,6 +50,11 @@
   color: #5dbad1;
   font-size: 32px;
   border-bottom: 5px solid #ccc;
+}
+
+.home-photo-title a {
+  color: inherit; /* 부모 요소의 색상 사용 */
+  text-decoration: none; /* 밑줄 제거 */
 }
 
 .home-photo-gallery {
@@ -94,10 +104,16 @@
 }
 
 .visitor-title {
+  
   color: #5dbad1;
   font-size: 32px;
   border-bottom: 5px solid #ccc;
   padding: 5px 0;
+}
+
+.visitor-title a {
+  color: inherit; /* 부모 요소의 색상 사용 */
+  text-decoration: none; /* 밑줄 제거 */
 }
 
 .visitor-comment-item {
@@ -114,3 +130,4 @@
   color: #888;
   text-align: right;
 }
+
