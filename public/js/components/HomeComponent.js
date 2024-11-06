@@ -22,7 +22,7 @@ async function HomeComponent() {
     console.error("Error fetching data:", error);
   }
 
-  const miniroomImage = "/resource/images/mini.png";
+  const miniroomImage = "/resource/images/mini.jpg";
 
   const truncateContent = (content, length = 15) => {
     const plainText = content.replace(/<[^>]*>/g, ""); // HTML 태그 제거
