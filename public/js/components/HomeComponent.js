@@ -32,13 +32,13 @@ async function HomeComponent() {
     return plainText.length > length ? plainText.slice(0, length) + "..." : plainText;
   };
 
-  const setDiaryLinkToToday = (() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `/diary/${year}${month}${day}`;
-  })();
+  // const setDiaryLinkToToday = (() => {
+  //   const today = new Date();
+  //   const year = today.getFullYear();
+  //   const month = String(today.getMonth() + 1).padStart(2, "0");
+  //   const day = String(today.getDate()).padStart(2, "0");
+  //   return `/diary/${year}${month}${day}`;
+  // })();
 
   const diaryHtml = diaryContents
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -77,7 +77,7 @@ async function HomeComponent() {
       <div class="top-section">
         <div class="Diary-section">
           <div class="Diary-title">
-            <a href="${setDiaryLinkToToday}" data-link>Diary</a>
+           Diary
           </div>
           <div class="Diary-show"> 
             ${diaryHtml}
@@ -85,7 +85,7 @@ async function HomeComponent() {
         </div>
         <div class="home-photo-section">
           <div class="home-photo-title">
-            <a href="/photo/board" data-link>Photo</a>
+           Photo
           </div>
           <div class="home-photo-gallery">
             ${photosHtml}
@@ -102,7 +102,7 @@ async function HomeComponent() {
       </div>
       <div class="visitor-section">
         <div class="visitor-title">
-          <a href="/visitor" data-link>What Visitors Say</a>
+        What Visitors Say
         </div> 
         <div class="visitor-comment">
           ${visitorsHtml}
