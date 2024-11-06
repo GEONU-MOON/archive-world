@@ -10,6 +10,10 @@ const CommentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    password: {
+      type: String,
+      required: false, // 회원이 아닌 사용자에게만 필요
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -19,7 +23,7 @@ const CommentSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const DiarySchema = new mongoose.Schema(
@@ -40,8 +44,8 @@ const DiarySchema = new mongoose.Schema(
   },
   {
     versionKey: false,
-    timestamps: true, // 다이어리 전체의 createdAt과 updatedAt 필드를 자동으로 관리
-  },
+    timestamps: true,
+  }
 );
 
 const Diary = mongoose.model("Diary", DiarySchema);

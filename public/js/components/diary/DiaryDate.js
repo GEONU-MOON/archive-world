@@ -6,6 +6,8 @@ function checkToday(year, month, day) {
   return false;
 }
 
+
+
 function encodeHTML(html) {
   const div = document.createElement("div");
   div.innerText = html;
@@ -151,7 +153,7 @@ async function saveEditedDiary(diaryId) {
       alert(`수정 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("수정 중 오류가 발생했습니다:", error);
+    // console.error("수정 중 오류가 발생했습니다:", error);
     alert("수정 중 오류가 발생했습니다. 다시 시도해주세요.");
   }
 
@@ -170,7 +172,7 @@ function cancelEditDiary(diaryId, encodedOriginalContent) {
   const contentElement = document.querySelector(`#diary-${diaryId} .diary-content span`);
   contentElement.innerHTML = originalContent;
 
-  // 버튼을 원래 상태로 복구
+  // 버튼을 원래 상태로 
   const editWrapper = contentElement.nextElementSibling;
   editWrapper.innerHTML = `
     <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
@@ -178,9 +180,32 @@ function cancelEditDiary(diaryId, encodedOriginalContent) {
   `;
 }
 
+// 로그인 상태를 확인하는 함수 (예제이므로 실제 구현에 맞게 수정 필요)
+function isLoggedIn() {
+  return !!sessionStorage.getItem("accessToken");
+}
+
 async function addComment(diaryId, formattedDate) {
   const commentInput = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="diary-comment"]`);
   const commentContent = commentInput.value.trim();
+
+  let userId = null;
+  let password = null;
+
+  if (!isLoggedIn()) {
+    userId = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-id"]`).value.trim();
+    password = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-password"]`).value.trim();
+
+    console.log("User ID:", userId);
+    console.log("Password:", password);
+
+    if (!userId || !password) {
+      alert("아이디와 비밀번호를 입력해 주세요.");
+      return;
+    }
+  }
+
+  console.log("Comment Content:", commentContent);
 
   if (!commentContent) {
     alert("댓글을 입력해 주세요.");
@@ -192,60 +217,76 @@ async function addComment(diaryId, formattedDate) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }),
       },
-      body: JSON.stringify({ content: commentContent }),
+      body: JSON.stringify({ content: commentContent, user_id: userId, password: password }),
     });
+
+    console.log("Request Headers:", {
+      "Content-Type": "application/json",
+      ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` })
+    });
+    console.log("Request Body:", { content: commentContent, user_id: userId, password: password });
+    console.log("Response Status:", response.status);
 
     if (response.ok) {
       commentInput.value = ""; // 입력 필드 초기화
+      if (!isLoggedIn()) {
+        document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-id"]`).value = "";
+        document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-password"]`).value = "";
+      }
       const updatedContent = await DiaryDate(formattedDate); // 최신 컴포넌트 가져오기
       document.querySelector(".white-box").innerHTML = updatedContent; // 컴포넌트 업데이트
     } else {
       const errorData = await response.json();
+      console.log("Error Data:", errorData);
       alert(`댓글 작성 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("댓글 작성 중 오류가 발생했습니다:", error);
+    console.error("댓글 작성 중 오류가 발생했습니다:", error);
     alert("댓글 작성 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
 
 
 
+
+
 async function saveEditedComment(diaryId, commentIndex) {
   const newContent = document.querySelector("#edit-comment-content").value;
-
-  // 현재 선택된 날짜를 추출
-  const year = document.querySelector("#month span").textContent.split(".")[0];
-  const month = document.querySelector("#month span").textContent.split(".")[1].padStart(2, "0");
-  const selectedDay = document.querySelector(".calendar-today span").textContent.split(".")[1].padStart(2, "0");
-  const formattedDate = `${year}${month}${selectedDay}`;
+  const password = document.querySelector("#comment-password")?.value || null;
 
   try {
     const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }),
       },
-      body: JSON.stringify({ content: newContent }),
+      body: JSON.stringify({ content: newContent, password }),
     });
 
     if (response.ok) {
-      // 최신 컴포넌트를 가져와 업데이트
-      const updatedContent = await DiaryDate(formattedDate);
-      document.querySelector(".white-box").innerHTML = updatedContent;
+      // 댓글 수정 성공 시 화면에 변경사항 반영
+      document.querySelector(`#comment-${diaryId}-${commentIndex} .diary-comment-content div`).innerHTML = newContent.replace(/\n/g, "<br>");
+      
+      // 버튼을 원래 상태로 복구
+      const editWrapper = document.querySelector(`#comment-${diaryId}-${commentIndex} .diary-comment-edit-wrapper`);
+      editWrapper.innerHTML = `
+        <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#comment-${diaryId}-${commentIndex} .diary-comment-content div'))">수정</button>
+        <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
+      `;
+
       alert("댓글이 성공적으로 수정되었습니다.");
     } else {
       const errorData = await response.json();
       alert(`댓글 수정 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("댓글 수정 중 오류가 발생했습니다:", error);
-    alert("댓글 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    alert("댓글 수정 중 오류가 발생했습니다.");
   }
 }
+
 
 
 
@@ -282,13 +323,15 @@ function cancelEditComment(diaryId, commentIndex, originalContent) {
 
 // 댓글 수정 함수
 async function editComment(diaryId, commentIndex, originalContentElement) {
-  // console.log("editComment called", diaryId, commentIndex);
+  if (!originalContentElement) {
+    // console.error("Error: Comment element not found.");
+    return; // 요소가 없으면 함수 종료
+  }
 
   const originalContent = originalContentElement.innerHTML;
 
   // 댓글을 수정 가능한 입력 폼으로 변경
   originalContentElement.innerHTML = `<textarea id="edit-comment-content">${originalContent.replace(/<br>/g, "\n")}</textarea>`;
-  // console.log("Content replaced with textarea");
 
   // 저장 및 취소 버튼 추가
   const editWrapper = originalContentElement.nextElementSibling;
@@ -296,45 +339,42 @@ async function editComment(diaryId, commentIndex, originalContentElement) {
     editWrapper.innerHTML = `
       <button id="btn-diary-save" onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
       <button id="btn-diary-cancel" onclick="cancelEditComment('${diaryId}', ${commentIndex}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
+      ${!isLoggedIn() ? `<input type="password" id="comment-password" placeholder="비밀번호">` : ""}
     `;
-    // console.log("Save and cancel buttons added");
   } else {
-    // console.log("editWrapper not found");
+    // console.error("Error: Edit wrapper element not found.");
   }
 }
 
 
 
-// 댓글 삭제 기능
+// 댓글 삭제 요청
 async function deleteComment(diaryId, commentIndex) {
-  if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
+  const password = !isLoggedIn() ? prompt("비밀번호를 입력하세요:") : null;
 
-  // 현재 선택된 날짜를 추출
-  const year = document.querySelector("#month span").textContent.split(".")[0];
-  const month = document.querySelector("#month span").textContent.split(".")[1].padStart(2, "0");
-  const selectedDay = document.querySelector(".calendar-today span").textContent.split(".")[1].padStart(2, "0");
-  const formattedDate = `${year}${month}${selectedDay}`;
+  if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
 
   try {
     const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+        ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` }),
       },
+      body: JSON.stringify({ password }),
     });
 
     if (response.ok) {
-      // 현재 선택된 날짜의 다이어리 데이터를 다시 로드
-      const updatedContent = await DiaryDate(formattedDate);
-      document.querySelector(".white-box").innerHTML = updatedContent;
+      // 삭제 성공 시 DOM에서 해당 댓글을 즉시 제거
+      document.querySelector(`#comment-${diaryId}-${commentIndex}`).remove();
       alert("댓글이 성공적으로 삭제되었습니다.");
     } else {
+      // 서버에서 실패 시 반환한 오류 메시지를 표시
       const errorData = await response.json();
       alert(`댓글 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("댓글 삭제 중 오류가 발생했습니다:", error);
-    alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    alert("댓글 삭제 중 오류가 발생했습니다.");
   }
 }
 
@@ -387,26 +427,26 @@ async function DiaryDate(today) {
     const diaryId = entry._id;
     const diaryWriter = entry.user_id || "Unknown";
     const diaryContent = entry.content.replace(/\n/g, "<br/>");
-
+  
     const commentsHTML = entry.comments && entry.comments.length > 0
-    ? entry.comments.map((comment, idx) => `
-        <div class="diary-comment-wrapper" id="comment-${diaryId}-${idx}">
-          <div class="diary-comment-info">
-            <span>no.${idx + 1} ${comment.user_id}</span>
-            <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
-          </div>
-          <div class="diary-comment-content">
-            <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
-            <div>${comment.content}</div>
-            <div class="diary-comment-edit-wrapper">
-              <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${diaryId}-${idx} .diary-comment-content div'))">수정</button>
-              <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
+      ? entry.comments.map((comment, idx) => `
+          <div class="diary-comment-wrapper" id="comment-${diaryId}-${idx}">
+            <div class="diary-comment-info">
+              <span>no.${idx + 1} ${comment.user_id}</span>
+              <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
             </div>
-          </div>
-        </div>`
-      ).join("")
-    : "";
-
+            <div class="diary-comment-content">
+              <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
+              <div>${comment.content}</div>
+              <div class="diary-comment-edit-wrapper">
+                <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${diaryId}-${idx} .diary-comment-content div'))">수정</button>
+                <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
+              </div>
+            </div>
+          </div>`
+        ).join("")
+      : "";
+  
     return `
       <div class="diary-container" id="diary-${diaryId}">
         <div class="diary-info">
@@ -422,15 +462,22 @@ async function DiaryDate(today) {
         </div>
         <div class="diary-comment-container">
           <form class="form-diary-comment" onsubmit="event.preventDefault(); addComment('${diaryId}', '${today}');">
-        <label>댓글</label>
-        <input type="text" name="diary-comment" />
-        <button type="submit">확인</button>
-      </form>
+            <label>댓글</label>
+            <input type="text" name="diary-comment" placeholder="댓글 입력" />
+  
+            ${!isLoggedIn() ? `
+              <input type="text" name="user-id" placeholder="아이디" style="width: 20%;" />
+              <input type="password" name="user-password" placeholder="비밀번호" style="width: 20%;" />
+            ` : ""}
+  
+            <button type="submit">확인</button>
+          </form>
           ${commentsHTML}
         </div>
       </div>
     `;
   }).join("");
+  
 
   const component = `
     <div class="diary-wrapper">

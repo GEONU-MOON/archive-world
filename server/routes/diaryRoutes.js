@@ -3,6 +3,8 @@ const router = express.Router();
 const Diary = require("../models/Diary");
 const User = require("../models/User"); // User 모델 가져오기
 const { findUser } = require("../util/util");
+const bcrypt = require("bcrypt");
+
 
 // 다이어리 작성 엔드포인트
 router.post("/write", async (req, res) => {
@@ -112,36 +114,6 @@ router.delete("/:diaryId/delete", async (req, res) => {
   }
 });
 
-// 댓글 작성 엔드포인트
-router.post("/:diaryId/comment", async (req, res) => {
-  try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
-
-    const { diaryId } = req.params;
-    const { content } = req.body;
-
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
-    }
-
-    const newComment = {
-      user_id: currentUser.user_id,
-      content,
-      createdAt: new Date(),
-    };
-    diary.comments.push(newComment);
-
-    await diary.save();
-    res.status(201).json({ message: "Comment added successfully", comment: newComment });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to add comment" });
-  }
-});
-
 // 댓글 조회 엔드포인트
 router.get("/:diaryId/comments", async (req, res) => {
   try {
@@ -158,16 +130,54 @@ router.get("/:diaryId/comments", async (req, res) => {
   }
 });
 
+// 댓글 작성 엔드포인트
+router.post("/:diaryId/comment", async (req, res) => {
+  try {
+    const authorization = req.headers.authorization;
+    let currentUser = null;
+
+    if (authorization) {
+      currentUser = await findUser(authorization);
+      if (!currentUser) {
+        return res.status(403).json({ error: "Unauthorized user" });
+      }
+    }
+
+    const { diaryId } = req.params;
+    const { content, user_id, password } = req.body;
+
+    if (!content) {
+      return res.status(400).json({ error: "Content is required" });
+    }
+
+    const diary = await Diary.findById(diaryId);
+    if (!diary) {
+      return res.status(404).json({ error: "Diary entry not found" });
+    }
+
+    // 새로운 댓글 생성 (비회원일 경우 평문 비밀번호 저장)
+    const newComment = {
+      user_id: currentUser ? currentUser.user_id : user_id,
+      content,
+      createdAt: new Date(),
+      password: currentUser ? undefined : password, // 평문 비밀번호 저장
+    };
+
+    diary.comments.push(newComment);
+    await diary.save();
+
+    res.status(201).json({ message: "Comment added successfully", comment: newComment });
+  } catch (error) {
+    // console.error("Error adding comment:", error);
+    res.status(500).json({ error: "Failed to add comment" });
+  }
+});
+
 // 댓글 수정 엔드포인트
 router.put("/:diaryId/comment/:commentIndex", async (req, res) => {
   try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
-
     const { diaryId, commentIndex } = req.params;
-    const { content } = req.body;
+    const { content, password } = req.body;
 
     const diary = await Diary.findById(diaryId);
     if (!diary) {
@@ -179,17 +189,26 @@ router.put("/:diaryId/comment/:commentIndex", async (req, res) => {
       return res.status(404).json({ error: "Comment not found" });
     }
 
-    if (comment.user_id !== currentUser.user_id) {
-      return res.status(403).json({ error: "You are not authorized to edit this comment" });
+    if (!req.headers.authorization) {
+      // 비회원 비밀번호 검증 (평문 비교)
+      if (password !== comment.password) {
+        return res.status(403).json({ error: "Incorrect password" });
+      }
+    } else {
+      // 회원 ID 검증
+      const currentUser = await findUser(req.headers.authorization);
+      if (!currentUser || currentUser.user_id !== comment.user_id) {
+        return res.status(403).json({ error: "Unauthorized user" });
+      }
     }
 
-    // 댓글 내용과 updatedAt 필드 업데이트
     comment.content = content;
     comment.updatedAt = new Date();
-
     await diary.save();
-    res.status(200).json({ message: "Comment updated successfully", updatedAt: comment.updatedAt });
+
+    res.status(200).json({ message: "Comment updated successfully" });
   } catch (error) {
+    console.error("Error updating comment:", error);
     res.status(500).json({ error: "Failed to update comment" });
   }
 });
@@ -197,12 +216,8 @@ router.put("/:diaryId/comment/:commentIndex", async (req, res) => {
 // 댓글 삭제 엔드포인트
 router.delete("/:diaryId/comment/:commentIndex", async (req, res) => {
   try {
-    const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
-
     const { diaryId, commentIndex } = req.params;
+    const { password } = req.body;
 
     const diary = await Diary.findById(diaryId);
     if (!diary) {
@@ -210,8 +225,21 @@ router.delete("/:diaryId/comment/:commentIndex", async (req, res) => {
     }
 
     const comment = diary.comments[commentIndex];
-    if (!comment || comment.user_id !== currentUser.user_id) {
-      return res.status(403).json({ error: "You are not authorized to delete this comment" });
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    if (!req.headers.authorization) {
+      // 비회원 비밀번호 검증 (평문 비교)
+      if (password !== comment.password) {
+        return res.status(403).json({ error: "Incorrect password" });
+      }
+    } else {
+      // 회원 ID 검증
+      const currentUser = await findUser(req.headers.authorization);
+      if (!currentUser || currentUser.user_id !== comment.user_id) {
+        return res.status(403).json({ error: "Unauthorized user" });
+      }
     }
 
     diary.comments.splice(commentIndex, 1);
@@ -219,9 +247,11 @@ router.delete("/:diaryId/comment/:commentIndex", async (req, res) => {
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (error) {
+    console.error("Error deleting comment:", error);
     res.status(500).json({ error: "Failed to delete comment" });
   }
 });
+
 
 router.get("/all", async (req, res) => {
   try {
