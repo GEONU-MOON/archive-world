@@ -12,7 +12,11 @@
 
 .photo-content-area {
   margin-bottom: 20px; /* 게시물 사이 간격 */
+  border: 2px solid #ccc; /* 테두리 추가 */
+  padding: 10px; /* 테두리와 내용 간격 */
+  border-radius: 5px; /* 테두리 둥글게 */
 }
+
 
 .photo-post {
   display: flex;
