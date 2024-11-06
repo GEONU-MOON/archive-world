@@ -99,7 +99,7 @@ function Profile() {
 
   window.onload = async function () {
     navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
-      audio = new Audio("/resource/sound/warr.mp3");
+      audio = new Audio("/resource/sound/y.mp3");
       audio.loop = true;
 
       document.getElementById("btn-music-start").addEventListener("click", function () {
@@ -130,7 +130,7 @@ function Profile() {
 
   const text = "🥶 댕춥다";
   const textIntro = "ㄱI억ㄴrㄴI?<br/>너와 ㄴr의 <br/>ㅆr이월드..";
-  const music = "와르르 - 콜드(Colde)";
+  const music = "Y(Please Tell Me Why) - 프리스타일";
   const content = `
     <div class="profile-photo">
         <img src="/resource/images/profile.png" alt="Profile Photo" class="profile-image"/>

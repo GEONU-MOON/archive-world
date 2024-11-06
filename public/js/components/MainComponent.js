@@ -34,8 +34,14 @@ async function incrementVisitorCount() {
   }
 }
 
+function getKSTDate() {
+  const now = new Date();
+  now.setHours(now.getHours() + 9); // 한국 시간(UTC+9)으로 변환
+  return now.toISOString().split("T")[0];
+}
+
 async function checkAndIncrementVisitorCount() {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getKSTDate(); // 한국 시간 기준의 오늘 날짜
   const lastVisitDate = localStorage.getItem("lastVisitDate");
 
   if (lastVisitDate !== today) {
@@ -45,6 +51,7 @@ async function checkAndIncrementVisitorCount() {
     await fetchVisitorCount();
   }
 }
+
 
 async function MainComponent() {
   const mainLayout = `
