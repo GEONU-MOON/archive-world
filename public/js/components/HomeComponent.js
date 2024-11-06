@@ -4,22 +4,25 @@ async function HomeComponent() {
   let photos = [];
 
   try {
-    const diaryResponse = await fetch("/api/diary/all");
+    const [diaryResponse, visitorResponse, photoResponse] = await Promise.all([
+      fetch("/api/diary/all"),
+      fetch("/visitors/visitors-read"),
+      fetch("/photos/all"),
+    ]);
+
     if (diaryResponse.ok) {
       diaryContents = await diaryResponse.json();
     }
 
-    const visitorResponse = await fetch("/visitors/visitors-read");
     if (visitorResponse.ok) {
       visitorComments = await visitorResponse.json();
     }
 
-    const photoResponse = await fetch("/photos/all"); // 사진 데이터 호출
     if (photoResponse.ok) {
       photos = await photoResponse.json();
     }
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("데이터를 가져오는 중 오류 발생:", error);
   }
 
   const miniroomImage = "/resource/images/mini.jpg";
@@ -28,16 +31,14 @@ async function HomeComponent() {
     const plainText = content.replace(/<[^>]*>/g, ""); // HTML 태그 제거
     return plainText.length > length ? plainText.slice(0, length) + "..." : plainText;
   };
-  
-  const setDiaryLinkToToday = () => {
+
+  const setDiaryLinkToToday = (() => {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const day = String(today.getDate()).padStart(2, "0");
-    const formattedDate = `${year}${month}${day}`;
-
-    return `/diary/${formattedDate}`;
-  };
+    return `/diary/${year}${month}${day}`;
+  })();
 
   const diaryHtml = diaryContents
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -55,7 +56,7 @@ async function HomeComponent() {
   const photosHtml = photos
     .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
     .slice(0, 3)
-    .map(photo => `<img src="${photo.imageUrl}" alt="${photo.title}">`)
+    .map(photo => `<img src="${photo.imageUrl}" alt="${photo.title}" loading="lazy">`)
     .join("");
 
   const visitorsHtml = visitorComments
@@ -76,7 +77,7 @@ async function HomeComponent() {
       <div class="top-section">
         <div class="Diary-section">
           <div class="Diary-title">
-            <a href="${setDiaryLinkToToday()}" data-link>Diary</a>
+            <a href="${setDiaryLinkToToday}" data-link>Diary</a>
           </div>
           <div class="Diary-show"> 
             ${diaryHtml}
@@ -96,7 +97,7 @@ async function HomeComponent() {
           Mini Room
         </div>
         <div class="miniroom-image">
-          <img src="${miniroomImage}" alt="Mini Room">
+          <img src="${miniroomImage}" alt="Mini Room" loading="lazy">
         </div>
       </div>
       <div class="visitor-section">
@@ -110,4 +111,3 @@ async function HomeComponent() {
     </div>
   `;
 }
-
