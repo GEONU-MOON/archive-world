@@ -5,8 +5,9 @@ const ClickCounter = require("../models/ClickCounter");
 // 클릭 수 증가 API
 router.post("/clicks/increment", async (req, res) => {
   try {
+    // 오늘 날짜를 KST 기준 자정으로 설정
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // 자정으로 설정하여 날짜만 비교
+    today.setUTCHours(15, 0, 0, 0); // UTC 기준 오후 3시가 한국 시간 자정입니다.
 
     // 기존 카운터를 가져옵니다.
     let counter = await ClickCounter.findOne();
@@ -16,7 +17,10 @@ router.post("/clicks/increment", async (req, res) => {
     }
 
     // 날짜가 바뀌었는지 확인
-    if (counter.lastUpdated < today) {
+    const lastUpdatedDate = new Date(counter.lastUpdated);
+    lastUpdatedDate.setUTCHours(15, 0, 0, 0); // lastUpdated 시간 정보를 KST 자정 기준으로 맞춰 비교
+
+    if (lastUpdatedDate < today) {
       counter.todayCount = 1; // 새로 초기화
     } else {
       counter.todayCount += 1;
@@ -33,7 +37,6 @@ router.post("/clicks/increment", async (req, res) => {
     res.status(500).json({ error: "Failed to increment click count" });
   }
 });
-
 
 // 클릭 수 조회 API
 router.get("/clicks", async (req, res) => {
