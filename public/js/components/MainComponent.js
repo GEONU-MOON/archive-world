@@ -65,7 +65,7 @@ async function MainComponent() {
         </div>
         <div class="main-wrapper">
           <div class="header-box">
-            <div class="intro">열심히 개발ㅎrㅈr...S2</div>
+            <div class="intro">S2열심히 살아ㄱrㅈrS2</div>
             <div class="outro">Hello, World!</div>
           </div>
           <div class="content-area"> 

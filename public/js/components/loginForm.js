@@ -40,7 +40,7 @@ function loginForm() {
     <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="header">
             <img src="/resource/images/pretzel.svg" alt="Pretzel Logo">
-            <h2>Pretzel</h2>
+            <h2>Moon's World</h2>
         </div>
         <label for="userId">아이디</label>
         <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요." required />

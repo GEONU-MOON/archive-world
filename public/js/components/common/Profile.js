@@ -5,7 +5,7 @@ function handleUploadButtonState() {
   if (!token) {
     // 토큰이 없을 경우 버튼을 비활성화하고 텍스트 변경
     uploadButton.disabled = true;
-    uploadButton.innerText = "환영합니다!";
+    uploadButton.innerText = "방가방가";
   }
 }
 
@@ -129,7 +129,7 @@ function Profile() {
   };
 
   const text = "🥶 댕춥다";
-  const textIntro = "ㄱI억ㄴrㄴI?<br/>너와 ㄴr의 <br/>ㅆr이월드..";
+  const textIntro = "어...왔ㄴI?<br/>어서 오r <br/>내 세상으로...";
   const music = "Y(Please Tell Me Why) - 프리스타일";
   const content = `
     <div class="profile-photo">
@@ -157,7 +157,7 @@ function Profile() {
         <span class="history">
         <a href="https://github.com/GEONU-MOON/Pretzel-world">
           <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="30" height="30">
-          <span>Pretzel Repository</span>
+          <span>My World Repository</span>
         </a>
         <a href="https://github.com/GEONU-MOON">
           <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="30" height="30">
