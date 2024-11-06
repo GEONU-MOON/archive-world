@@ -1,8 +1,8 @@
-let selectedAvatarUrl = getRandomAvatar(); 
+let selectedAvatarUrl = getRandomAvatar();
 
 function getRandomAvatar() {
-  const bucketName = "pretzelworld-bucket"; 
-  const region = "ap-northeast-2"; 
+  const bucketName = "pretzelworld-bucket";
+  const region = "ap-northeast-2";
   const avatars = [
     `https://${bucketName}.s3.${region}.amazonaws.com/avatars/mario.png`,
     `https://${bucketName}.s3.${region}.amazonaws.com/avatars/crown.png`,
@@ -102,7 +102,6 @@ function saveEditVisitorSay(id) {
       return response.json();
     })
     .then(data => {
-      console.log("Visitor updated:", data);
       renderVisitorSays(); // 변경 후 전체 리스트 다시 렌더링
     })
     .catch(error => {
@@ -130,7 +129,6 @@ function deleteVisitorSay(id) {
       return response.json();
     })
     .then(data => {
-      console.log("Visitor deleted:", data);
       document.getElementById(`visitor-item-${id}`).remove(); // 삭제된 항목만 제거
     })
     .catch(error => {
@@ -138,7 +136,6 @@ function deleteVisitorSay(id) {
       alert("비밀번호가 올바르지 않습니다.");
     });
 }
-
 
 function postVisitorSay(event) {
   event.preventDefault();
@@ -154,7 +151,7 @@ function postVisitorSay(event) {
     body: JSON.stringify({
       visitor_no: Date.now(),
       writer: author,
-      writer_avatar: selectedAvatarUrl, 
+      writer_avatar: selectedAvatarUrl,
       content: content,
       password: password,
     }),
@@ -166,12 +163,27 @@ function postVisitorSay(event) {
       return response.json();
     })
     .then(data => {
-      // console.log("Visitor added:", data);
-      renderVisitorSays(); 
+      renderVisitorSays();
+      showSuccessMessage("방명록이 성공적으로 등록되었습니다!");
+
+      // 폼 초기화
+      document.getElementById("input-visitor-author").value = "";
+      document.getElementById("input-visitor-password").value = "";
+      document.getElementById("input-visitor-say").value = "";
     })
     .catch(error => {
-      // console.error("Error adding visitor:", error);
+      console.error("Error adding visitor:", error);
     });
+}
+
+function showSuccessMessage(message) {
+  const successMessage = document.getElementById("visitor-success-message");
+  successMessage.textContent = message;
+  successMessage.style.display = "block";
+
+  setTimeout(() => {
+    successMessage.style.display = "none";
+  }, 3000);
 }
 
 function VisitorComponent() {
@@ -198,6 +210,7 @@ function VisitorComponent() {
             </div>
           </div>
         </form>
+        <div id="visitor-success-message" style="display: none; color: green; margin-top: 10px;"></div>
         <div class="visitor-says-container">
           <!-- 방명록 항목이 여기에 렌더링됩니다. -->
         </div>
@@ -207,10 +220,10 @@ function VisitorComponent() {
 
   renderVisitorSays();
 
-  return component; 
+  return component;
 }
 
 function changeVisitorImage() {
-  selectedAvatarUrl = getRandomAvatar(); 
+  selectedAvatarUrl = getRandomAvatar();
   document.getElementById("visitor-avatar").src = selectedAvatarUrl;
 }
