@@ -40,7 +40,7 @@ async function renderVisitorSays() {
           </div>
           <div class="visitor-says-content">
             <img src="${item.writer_avatar}" width="100" height="100" alt="Visitor Avatar" />
-            <p id="visitor-content-${item._id}">${item.content}</p>
+            <p id="visitor-content-${item._id}" style="white-space: pre-wrap;">${item.content}</p>
           </div>
           <div class="visitor-actions">
             <button onclick="showEditForm('${item._id}', '${item.content}')">수정</button>
