@@ -59,18 +59,21 @@ async function HomeComponent() {
     .map(photo => `<img src="${photo.imageUrl}" alt="${photo.title}" loading="lazy">`)
     .join("");
 
-  const visitorsHtml = visitorComments
+    const visitorsHtml = visitorComments
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 2)
     .map(
       item => `
       <div class="visitor-comment-item">
-        <div class="comment-content">${item.content}</div>
+        <div class="comment-content">
+          ${truncateContent(item.content.replace(/\n/g, " "), 30)}
+        </div>
         <div class="comment-timestamp">${new Date(item.createdAt).toLocaleString()}</div>
       </div>
     `,
     )
     .join("");
+  
 
   return ` 
     <div class="home-container">
