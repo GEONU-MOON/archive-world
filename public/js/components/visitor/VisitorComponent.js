@@ -43,11 +43,11 @@ async function renderVisitorSays() {
             <p id="visitor-content-${item._id}" style="white-space: pre-wrap;">${item.content}</p>
           </div>
           <div class="visitor-actions">
-            <button onclick="showEditForm('${item._id}', '${item.content}')">수정</button>
+            <button onclick="showEditForm('${item._id}')">수정</button>
             <button onclick="showDeleteForm('${item._id}')">삭제</button>
           </div>
           <div class="edit-password-form" id="edit-form-${item._id}" style="display: none;">
-            <textarea id="edit-content-${item._id}">${item.content}</textarea>
+            <textarea id="edit-content-${item._id}"></textarea>
             <input type="password" id="edit-password-${item._id}" placeholder="비밀번호 입력" required />
             <button onclick="saveEditVisitorSay('${item._id}')">저장</button>
             <button onclick="cancelEdit('${item._id}')">취소</button>
@@ -68,7 +68,10 @@ async function renderVisitorSays() {
   }
 }
 
-function showEditForm(id, currentContent) {
+// 수정된 showEditForm 함수
+function showEditForm(id) {
+  const content = document.getElementById(`visitor-content-${id}`).textContent;
+  document.getElementById(`edit-content-${id}`).value = content;
   document.getElementById(`edit-form-${id}`).style.display = "block";
 }
 
