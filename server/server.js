@@ -6,13 +6,18 @@ const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
 const diaryRoutes = require("./routes/diaryRoutes");
-const photoRoutes = require("./routes/photoRoutes"); 
+const photoRoutes = require("./routes/photoRoutes");
 const clicksRoutes = require("./routes/clickCountRoutes");
 
 const PORT = process.env.PORT || 3000;
 
+// MySQL 연결 설정
 const connectDB = require("./db");
-connectDB();
+
+// 서버 시작 시 MySQL 연결 확인
+(async () => {
+  await connectDB();
+})();
 
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -24,7 +29,7 @@ app.use("/auth", authRoutes);
 app.use(profileRoutes);
 app.use("/visitors", visitorRoutes);
 app.use("/api/diary", diaryRoutes);
-app.use("/photos", photoRoutes); 
+app.use("/photos", photoRoutes);
 app.use("/click", clicksRoutes);
 
 app.get("*", (req, res) => {
@@ -32,5 +37,5 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`서버가 http://localhost:${PORT}에서 실행 중입니다.`);
 });
