@@ -8,6 +8,7 @@ const visitorRoutes = require("./routes/visitorRoutes");
 const diaryRoutes = require("./routes/diaryRoutes");
 const photoRoutes = require("./routes/photoRoutes");
 const clicksRoutes = require("./routes/clickCountRoutes");
+// const testRoutes = require("./routes/testRoutes");
 
 const PORT = process.env.PORT || 3000;
 
@@ -31,6 +32,7 @@ app.use("/visitors", visitorRoutes);
 app.use("/api/diary", diaryRoutes);
 app.use("/photos", photoRoutes);
 app.use("/click", clicksRoutes);
+// app.use("/api/test", testRoutes);
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));
