@@ -38,10 +38,11 @@ router.get("/:year/:month/:day", async (req, res) => {
       diary.user_id = author.length ? author[0].user_id : "Unknown";
 
       const [comments] = await connection.query(
-        `SELECT C.*, U.user_id, U.user_avatar
+        `SELECT C.id, C.content, C.commentIndex, C.user_id, C.guest_user_id, C.createdAt, U.user_id, U.user_avatar
          FROM Comments C
          LEFT JOIN Users U ON C.user_id = U.id
-         WHERE C.diary_id = ?`,
+         WHERE C.diary_id = ?
+         ORDER BY C.commentIndex`,
         [diary.id]
       );
 
@@ -55,7 +56,7 @@ router.get("/:year/:month/:day", async (req, res) => {
 
     res.status(200).json(diaries);
   } catch (error) {
-    // console.error("Error fetching diary entry:", error);
+    console.error("Error fetching diary entry:", error);
     res.status(500).json({ error: "Failed to fetch diary entry" });
   }
 });
@@ -137,56 +138,80 @@ router.delete("/:diaryId/delete", async (req, res) => {
 });
 
 
-// 댓글 작성 (회원/비회원)
+// 댓글 추가 엔드포인트
 router.post("/:diaryId/comment", async (req, res) => {
   try {
-    const authorization = req.headers.authorization;
-    let currentUser = null;
-    if (authorization) currentUser = await findUser(authorization);
-
     const { diaryId } = req.params;
     const { content, user_id, password } = req.body;
+    const currentUser = req.headers.authorization ? await findUser(req.headers.authorization) : null;
 
     const connection = await connectDB();
+
+    // 해당 게시물(diary_id)에서 가장 높은 commentIndex 값을 가져옴
+    const [maxIndexResult] = await connection.query(
+      "SELECT COALESCE(MAX(commentIndex), 0) AS maxIndex FROM Comments WHERE diary_id = ?",
+      [diaryId]
+    );
+    const nextIndex = maxIndexResult[0].maxIndex + 1;
+
+    // 댓글 삽입
     await connection.query(
-      "INSERT INTO Comments (diary_id, user_id, guest_user_id, content, password, createdAt) VALUES (?, ?, ?, ?, ?, NOW())",
-      [diaryId, currentUser ? currentUser.id : null, currentUser ? null : user_id, content, currentUser ? null : password]
+      "INSERT INTO Comments (diary_id, user_id, guest_user_id, content, password, commentIndex, createdAt) VALUES (?, ?, ?, ?, ?, ?, NOW())",
+      [diaryId, currentUser ? currentUser.id : null, currentUser ? null : user_id, content, currentUser ? null : password, nextIndex]
     );
 
     res.status(201).json({ message: "Comment added successfully" });
   } catch (error) {
-    // console.error("Error adding comment:", error);
+    console.error("Error adding comment:", error);
     res.status(500).json({ error: "Failed to add comment" });
   }
 });
 
-// 댓글 삭제
+// 댓글 삭제 엔드포인트
 router.delete("/:diaryId/comment/:commentId", async (req, res) => {
   try {
-    const { commentId } = req.params;
+    const { diaryId, commentId } = req.params;
     const { password } = req.body;
     const connection = await connectDB();
 
+    // 댓글 조회
     const [comment] = await connection.query("SELECT * FROM Comments WHERE id = ?", [commentId]);
     if (!comment.length) return res.status(404).json({ error: "Comment not found" });
 
     // 비회원의 경우 비밀번호 검증
-    if (!comment[0].user_id) {
-      if (password !== comment[0].password) {
-        return res.status(403).json({ error: "Incorrect password" });
-      }
-    } else {
-      // 회원 댓글인 경우 사용자 검증
-      const currentUser = await findUser(req.headers.authorization);
-      if (!currentUser || currentUser.id !== comment[0].user_id) {
-        return res.status(403).json({ error: "Unauthorized user" });
-      }
+    if (!comment[0].user_id && password !== comment[0].password) {
+      return res.status(403).json({ error: "Incorrect password" });
     }
 
+    // 댓글 삭제
     await connection.query("DELETE FROM Comments WHERE id = ?", [commentId]);
-    res.status(200).json({ message: "Comment deleted successfully" });
+
+    // 인덱스 초기화 및 재정렬
+    await connection.query("SET @index := 0;");
+    await connection.query(
+      "UPDATE Comments SET commentIndex = (@index := @index + 1) WHERE diary_id = ? ORDER BY commentIndex;",
+      [diaryId]
+    );
+
+    // 재정렬된 댓글 목록 반환
+    const [updatedComments] = await connection.query(
+      `SELECT C.id, C.content, C.commentIndex, C.user_id, C.guest_user_id, C.createdAt, U.user_id, U.user_avatar
+       FROM Comments C
+       LEFT JOIN Users U ON C.user_id = U.id
+       WHERE C.diary_id = ?
+       ORDER BY C.commentIndex`,
+      [diaryId]
+    );
+
+    // 유저 아바타 처리
+    for (const comment of updatedComments) {
+      comment.user_id = comment.user_id || comment.guest_user_id;
+      comment.user_avatar = comment.user_avatar || "/resource/images/profile.png";
+    }
+
+    res.status(200).json({ message: "Comment deleted and indices updated successfully", comments: updatedComments });
   } catch (error) {
-    // console.error("Error deleting comment:", error);
+    console.error("Error deleting comment:", error);
     res.status(500).json({ error: "Failed to delete comment" });
   }
 });

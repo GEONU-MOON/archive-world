@@ -354,9 +354,7 @@ async function editComment(diaryId, commentId, originalContentElement) {
   }
 }
 
-// 댓글 삭제 요청
 async function deleteComment(diaryId, commentId) {
-  // console.log("[deleteComment] Called with Diary ID:", diaryId, "Comment ID:", commentId);
   const password = !isLoggedIn() ? prompt("비밀번호를 입력하세요:") : null;
 
   if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
@@ -371,18 +369,50 @@ async function deleteComment(diaryId, commentId) {
       body: JSON.stringify({ password }),
     });
 
-    // console.log("[deleteComment] Response Status:", response.status);
-
     if (response.ok) {
-      document.querySelector(`#comment-${commentId}`).remove();
+      const data = await response.json();
+      const updatedComments = data.comments;
+
+      // 댓글 목록 업데이트
+      const commentContainer = document.querySelector(`#diary-${diaryId} .diary-comment-container`);
+      const commentFormHTML = `
+        <form class="form-diary-comment" onsubmit="event.preventDefault(); addComment('${diaryId}', '${new Date().toISOString().slice(0, 10).replace(/-/g, '')}');">
+          <label>댓글</label>
+          <input type="text" name="diary-comment" placeholder="댓글 입력" />
+          ${!isLoggedIn() ? `
+            <input type="text" name="user-id" placeholder="아이디" style="width: 20%;" />
+            <input type="password" name="user-password" placeholder="비밀번호" style="width: 20%;" />
+          ` : ""}
+          <button type="submit">확인</button>
+        </form>
+      `;
+
+      const commentsHTML = updatedComments.map((comment) => `
+        <div class="diary-comment-wrapper" id="comment-${comment.id}">
+          <div class="diary-comment-info">
+            <span>no.${comment.commentIndex} ${comment.user_id || comment.guest_user_id}</span>
+            <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
+          </div>
+          <div class="diary-comment-content">
+            <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
+            <div>${comment.content}</div>
+            <div class="diary-comment-edit-wrapper">
+              <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${comment.id}, document.querySelector('#comment-${comment.id} .diary-comment-content div'))">수정</button>
+              <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${comment.id})">삭제</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      // 댓글 입력 폼과 댓글 목록을 함께 업데이트
+      commentContainer.innerHTML = commentFormHTML + commentsHTML;
+
       alert("댓글이 성공적으로 삭제되었습니다.");
     } else {
       const errorData = await response.json();
-      // console.error("[deleteComment] Error Data:", errorData);
       alert(`댓글 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("[deleteComment] Error:", error);
     alert("댓글 삭제 중 오류가 발생했습니다.");
   }
 }
@@ -438,7 +468,7 @@ async function DiaryDate(today) {
   ? entry.comments.map((comment) => `
       <div class="diary-comment-wrapper" id="comment-${comment.id}">
         <div class="diary-comment-info">
-          <span>no.${comment.id} ${comment.user_id || comment.guest_user_id}</span>
+          <span>no.${comment.commentIndex} ${comment.user_id || comment.guest_user_id}</span>
           <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
         </div>
         <div class="diary-comment-content">
@@ -452,7 +482,6 @@ async function DiaryDate(today) {
       </div>`
     ).join("")
   : "";
-
   
     return `
       <div class="diary-container" id="diary-${diaryId}">
