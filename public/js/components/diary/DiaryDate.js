@@ -43,7 +43,7 @@ function getDateTemplate(year, month) {
   dateTemplate += "</tr><tr>";
   for (let i = 14; i <= lastDates[parseInt(month) - 1]; i++) {
     if (checkToday(year, month, i)) {
-      dateTemplate += `<td id="today onclick="changeDate(event)"">${i}</td>`;
+      dateTemplate += `<td id="today" onclick="changeDate(event)"">${i}</td>`;
     } else {
       dateTemplate += `<td onclick="changeDate(event)">${i}</td>`;
     }
