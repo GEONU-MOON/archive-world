@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Diary = require("../models/Diary");
-const User = require("../models/User"); // User 모델 가져오기
+const User = require("../models/Users"); // User 모델 가져오기
 const { findUser } = require("../util/util");
 const bcrypt = require("bcrypt");
 

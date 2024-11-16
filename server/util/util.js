@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("../models/Users");
 require("dotenv").config();
 
 async function findUser(token) {

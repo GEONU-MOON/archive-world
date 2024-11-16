@@ -1,52 +1,19 @@
-const mongoose = require("mongoose");
+const connectDB = require("../db");
 
-const CommentSchema = new mongoose.Schema(
-  {
-    user_id: {
-      type: String,
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
-    password: {
-      type: String,
-      required: false, // 회원이 아닌 사용자에게만 필요
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  { _id: false }
-);
+const getAllDiaries = async () => {
+  const connection = await connectDB();
+  const [rows] = await connection.query("SELECT * FROM Diary ORDER BY date DESC");
+  await connection.end();
+  return rows;
+};
 
-const DiarySchema = new mongoose.Schema(
-  {
-    user_id: {
-      type: String,
-      required: true,
-    },
-    date: {
-      type: Date,
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
-    comments: [CommentSchema],
-  },
-  {
-    versionKey: false,
-    timestamps: true,
-  }
-);
+const createDiary = async (user_id, date, content) => {
+  const connection = await connectDB();
+  await connection.query(
+    "INSERT INTO Diary (user_id, date, content) VALUES (?, ?, ?)",
+    [user_id, date, content]
+  );
+  await connection.end();
+};
 
-const Diary = mongoose.model("Diary", DiarySchema);
-module.exports = Diary;
+module.exports = { getAllDiaries, createDiary };

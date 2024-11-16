@@ -1,20 +1,19 @@
-const mongoose = require("mongoose");
+const connectDB = require("../db");
 
-const clickCounterSchema = new mongoose.Schema({
-  totalCount: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  todayCount: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  lastUpdated: {
-    type: Date,
-    default: Date.now
-  }
-});
+const getClickCounter = async () => {
+  const connection = await connectDB();
+  const [rows] = await connection.query("SELECT * FROM ClickCounter LIMIT 1");
+  await connection.end();
+  return rows[0];
+};
 
-module.exports = mongoose.model("ClickCounter", clickCounterSchema);
+const updateClickCounter = async (totalCount, todayCount) => {
+  const connection = await connectDB();
+  await connection.query(
+    "UPDATE ClickCounter SET totalCount = ?, todayCount = ?, lastUpdated = NOW()",
+    [totalCount, todayCount]
+  );
+  await connection.end();
+};
+
+module.exports = { getClickCounter, updateClickCounter };

@@ -1,32 +1,19 @@
-const mongoose = require("mongoose");
+const connectDB = require("../db");
 
-const CommentSchema = new mongoose.Schema(
-  {
-    user_id: { type: String, required: true },
-    content: { type: String, required: true },
-    password: { type: String, required: false }, // 비회원 비밀번호 필드 추가
-    isMember: { type: Boolean, required: true }, // 회원 여부 필드 추가
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-  },
-  { _id: false },
-);
+const getAllPhotos = async () => {
+  const connection = await connectDB();
+  const [rows] = await connection.query("SELECT * FROM Photo ORDER BY uploadedAt DESC");
+  await connection.end();
+  return rows;
+};
 
+const createPhoto = async (user_id, title, description, imageUrl) => {
+  const connection = await connectDB();
+  await connection.query(
+    "INSERT INTO Photo (user_id, title, description, imageUrl) VALUES (?, ?, ?, ?)",
+    [user_id, title, description, imageUrl]
+  );
+  await connection.end();
+};
 
-const PhotoSchema = new mongoose.Schema(
-  {
-    user_id: { type: String, required: true },
-    title: { type: String, required: true },
-    description: { type: String },
-    imageUrl: { type: String, required: true },
-    uploadedAt: { type: Date, default: Date.now },
-    comments: [CommentSchema],
-  },
-  {
-    versionKey: false,
-    timestamps: true,
-  },
-);
-
-const Photo = mongoose.model("Photo", PhotoSchema);
-module.exports = Photo;
+module.exports = { getAllPhotos, createPhoto };

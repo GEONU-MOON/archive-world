@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Photo = require("../models/Photo");
-const User = require("../models/User");
+const User = require("../models/Users");
 const { findUser } = require("../util/util");
 const { imageUploader, uploadToS3 } = require("../imageUploader");
 const multer = require("multer");
