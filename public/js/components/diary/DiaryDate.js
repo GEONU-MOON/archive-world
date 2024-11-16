@@ -96,6 +96,8 @@ async function changeDate(event) {
 
 
 async function deleteDiary(diaryId) {
+  // console.log("[deleteDiary] Called with Diary ID:", diaryId);
+
   const confirmation = confirm("이 다이어리를 삭제하시겠습니까?");
   if (!confirmation) return;
 
@@ -107,18 +109,22 @@ async function deleteDiary(diaryId) {
       },
     });
 
+    // console.log("[deleteDiary] Response Status:", response.status);
+
     if (response.ok) {
       alert("다이어리가 성공적으로 삭제되었습니다.");
       document.querySelector(`#diary-${diaryId}`).remove();
     } else {
       const errorData = await response.json();
+      console.error("[deleteDiary] Error Data:", errorData);
       alert(`다이어리 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("다이어리 삭제 중 오류가 발생했습니다:", error);
+    // console.error("[deleteDiary] Error:", error);
     alert("다이어리 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
   }
 }
+
 
 async function editDiary(diaryId, currentContentElement) {
   const originalContent = encodeURIComponent(currentContentElement.innerHTML); // 안전한 인코딩
@@ -138,31 +144,32 @@ async function editDiary(diaryId, currentContentElement) {
 
 async function saveEditedDiary(diaryId) {
   const newContent = document.querySelector("#edit-diary-content").value;
+  // console.log("[saveEditedDiary] Called with Diary ID:", diaryId, "New Content:", newContent);
 
   try {
     const response = await fetchWithToken(`/api/diary/${diaryId}/edit`, {
       method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+      },
       body: JSON.stringify({ content: newContent }),
     });
+
+    // console.log("[saveEditedDiary] Response Status:", response.status);
 
     if (response.ok) {
       alert("다이어리가 성공적으로 수정되었습니다.");
       document.querySelector(`#diary-${diaryId} .diary-content span`).innerHTML = newContent.replace(/\n/g, "<br>");
     } else {
       const errorData = await response.json();
+      // console.error("[saveEditedDiary] Error Data:", errorData);
       alert(`수정 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("수정 중 오류가 발생했습니다:", error);
-    alert("수정 중 오류가 발생했습니다. 다시 시도해주세요.");
+    // console.error("[saveEditedDiary] Error:", error);
+    alert("수정 중 오류가 발생했습니다.");
   }
-
-  // 수정 완료 후 버튼을 원래대로 변경
-  const editWrapper = document.querySelector(`#diary-${diaryId} .diary-edit-wrapper`);
-  editWrapper.innerHTML = `
-    <button id="btn-diary-edit" onclick="editDiary('${diaryId}', document.querySelector('#diary-${diaryId} .diary-content span'))">수정</button>
-    <button id="btn-diary-remove" onclick="deleteDiary('${diaryId}')">삭제</button>
-  `;
 }
 
 function cancelEditDiary(diaryId, encodedOriginalContent) {
@@ -196,8 +203,8 @@ async function addComment(diaryId, formattedDate) {
     userId = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-id"]`).value.trim();
     password = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-password"]`).value.trim();
 
-    console.log("User ID:", userId);
-    console.log("Password:", password);
+    // console.log("User ID:", userId);
+    // console.log("Password:", password);
 
     if (!userId || !password) {
       alert("아이디와 비밀번호를 입력해 주세요.");
@@ -205,7 +212,7 @@ async function addComment(diaryId, formattedDate) {
     }
   }
 
-  console.log("Comment Content:", commentContent);
+  // console.log("Comment Content:", commentContent);
 
   if (!commentContent) {
     alert("댓글을 입력해 주세요.");
@@ -222,12 +229,13 @@ async function addComment(diaryId, formattedDate) {
       body: JSON.stringify({ content: commentContent, user_id: userId, password: password }),
     });
 
-    console.log("Request Headers:", {
-      "Content-Type": "application/json",
-      ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` })
-    });
-    console.log("Request Body:", { content: commentContent, user_id: userId, password: password });
-    console.log("Response Status:", response.status);
+    // console.log("Request Headers:"
+    //   , {
+    //   "Content-Type": "application/json",
+    //   ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` })
+    // });
+    // console.log("Request Body:", { content: commentContent, user_id: userId, password: password });
+    // console.log("Response Status:", response.status);
 
     if (response.ok) {
       commentInput.value = ""; // 입력 필드 초기화
@@ -239,25 +247,22 @@ async function addComment(diaryId, formattedDate) {
       document.querySelector(".white-box").innerHTML = updatedContent; // 컴포넌트 업데이트
     } else {
       const errorData = await response.json();
-      console.log("Error Data:", errorData);
+      // console.log("Error Data:", errorData);
       alert(`댓글 작성 실패: ${errorData.error}`);
     }
   } catch (error) {
-    console.error("댓글 작성 중 오류가 발생했습니다:", error);
+    // console.error("댓글 작성 중 오류가 발생했습니다:", error);
     alert("댓글 작성 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
 
-
-
-
-
-async function saveEditedComment(diaryId, commentIndex) {
+async function saveEditedComment(diaryId, commentId) {
   const newContent = document.querySelector("#edit-comment-content").value;
   const password = document.querySelector("#comment-password")?.value || null;
+  // console.log("[saveEditedComment] Called with Diary ID:", diaryId, "Comment ID:", commentId, "New Content:", newContent);
 
   try {
-    const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
+    const response = await fetch(`/api/diary/${diaryId}/comment/${commentId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -266,66 +271,69 @@ async function saveEditedComment(diaryId, commentIndex) {
       body: JSON.stringify({ content: newContent, password }),
     });
 
+    // console.log("[saveEditedComment] Response Status:", response.status);
+
     if (response.ok) {
-      // 댓글 수정 성공 시 화면에 변경사항 반영
-      document.querySelector(`#comment-${diaryId}-${commentIndex} .diary-comment-content div`).innerHTML = newContent.replace(/\n/g, "<br>");
-      
-      // 버튼을 원래 상태로 복구
-      const editWrapper = document.querySelector(`#comment-${diaryId}-${commentIndex} .diary-comment-edit-wrapper`);
-      editWrapper.innerHTML = `
-        <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#comment-${diaryId}-${commentIndex} .diary-comment-content div'))">수정</button>
-        <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
-      `;
+      // 댓글 내용 업데이트
+      document.querySelector(`#comment-${commentId} .diary-comment-content div`).innerHTML = newContent.replace(/\n/g, "<br>");
+
+      // 버튼 UI 복원
+      const editWrapper = document.querySelector(`#comment-${commentId} .diary-comment-edit-wrapper`);
+      if (editWrapper) {
+        editWrapper.innerHTML = `
+          <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentId}, document.querySelector('#comment-${commentId} .diary-comment-content div'))">수정</button>
+          <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentId})">삭제</button>
+        `;
+        // console.log("[saveEditedComment] Buttons restored successfully.");
+      } else {
+        // console.error("[saveEditedComment] Edit wrapper element not found.");
+      }
 
       alert("댓글이 성공적으로 수정되었습니다.");
     } else {
       const errorData = await response.json();
+      // console.error("[saveEditedComment] Error Data:", errorData);
       alert(`댓글 수정 실패: ${errorData.error}`);
     }
   } catch (error) {
+    // console.error("[saveEditedComment] Error:", error);
     alert("댓글 수정 중 오류가 발생했습니다.");
   }
 }
 
-
-
-
 // 댓글 수정 취소 함수
-function cancelEditComment(diaryId, commentIndex, originalContent) {
-  // console.log("cancelEditComment called", diaryId, commentIndex, originalContent);
+function cancelEditComment(diaryId, commentId, originalContent) {
+  // console.log("[cancelEditComment] Called with Diary ID:", diaryId, "Comment ID:", commentId, "Original Content:", originalContent);
 
-  // 댓글의 원래 내용을 복원할 요소 선택
-  const contentElement = document.querySelector(`#diary-${diaryId} #comment-${diaryId}-${commentIndex} .diary-comment-content div`);
-  // console.log("Selected contentElement:", contentElement);
+  // 댓글의 원래 내용을 복원할 요소 선택 (commentId 사용)
+  const contentElement = document.querySelector(`#comment-${commentId} .diary-comment-content div`);
 
   if (contentElement) {
     // 수정 폼 제거하고 원래 내용 복원
-    contentElement.innerHTML = originalContent; 
-    // console.log("Original content restored");
+    contentElement.innerHTML = originalContent;
 
     // 버튼 UI 복원
     const editWrapper = contentElement.nextElementSibling;
-    // console.log("Selected editWrapper:", editWrapper);
-    
     if (editWrapper) {
       editWrapper.innerHTML = `
-        <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentIndex}, document.querySelector('#diary-${diaryId} #comment-${diaryId}-${commentIndex} .diary-comment-content div'))">수정</button>
-        <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentIndex})">삭제</button>
+        <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentId}, document.querySelector('#comment-${commentId} .diary-comment-content div'))">수정</button>
+        <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentId})">삭제</button>
       `;
-      // console.log("Buttons restored");
+      // console.log("[cancelEditComment] Buttons restored successfully.");
     } else {
-      // console.log("editWrapper not found");
+      // console.error("[cancelEditComment] Edit wrapper element not found.");
     }
   } else {
-    // console.log("contentElement not found");
+    // console.error("[cancelEditComment] Content element not found.");
   }
 }
 
+
 // 댓글 수정 함수
-async function editComment(diaryId, commentIndex, originalContentElement) {
+async function editComment(diaryId, commentId, originalContentElement) {
   if (!originalContentElement) {
     // console.error("Error: Comment element not found.");
-    return; // 요소가 없으면 함수 종료
+    return;
   }
 
   const originalContent = originalContentElement.innerHTML;
@@ -337,8 +345,8 @@ async function editComment(diaryId, commentIndex, originalContentElement) {
   const editWrapper = originalContentElement.nextElementSibling;
   if (editWrapper) {
     editWrapper.innerHTML = `
-      <button id="btn-diary-save" onclick="saveEditedComment('${diaryId}', ${commentIndex})">저장</button>
-      <button id="btn-diary-cancel" onclick="cancelEditComment('${diaryId}', ${commentIndex}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
+      <button id="btn-diary-save" onclick="saveEditedComment('${diaryId}', ${commentId})">저장</button>
+      <button id="btn-diary-cancel" onclick="cancelEditComment('${diaryId}', ${commentId}, \`${originalContent.replace(/`/g, "\\`")}\`)">취소</button>
       ${!isLoggedIn() ? `<input type="password" id="comment-password" placeholder="비밀번호">` : ""}
     `;
   } else {
@@ -346,16 +354,15 @@ async function editComment(diaryId, commentIndex, originalContentElement) {
   }
 }
 
-
-
 // 댓글 삭제 요청
-async function deleteComment(diaryId, commentIndex) {
+async function deleteComment(diaryId, commentId) {
+  // console.log("[deleteComment] Called with Diary ID:", diaryId, "Comment ID:", commentId);
   const password = !isLoggedIn() ? prompt("비밀번호를 입력하세요:") : null;
 
   if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
 
   try {
-    const response = await fetch(`/api/diary/${diaryId}/comment/${commentIndex}`, {
+    const response = await fetch(`/api/diary/${diaryId}/comment/${commentId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -364,22 +371,21 @@ async function deleteComment(diaryId, commentIndex) {
       body: JSON.stringify({ password }),
     });
 
+    // console.log("[deleteComment] Response Status:", response.status);
+
     if (response.ok) {
-      // 삭제 성공 시 DOM에서 해당 댓글을 즉시 제거
-      document.querySelector(`#comment-${diaryId}-${commentIndex}`).remove();
+      document.querySelector(`#comment-${commentId}`).remove();
       alert("댓글이 성공적으로 삭제되었습니다.");
     } else {
-      // 서버에서 실패 시 반환한 오류 메시지를 표시
       const errorData = await response.json();
+      // console.error("[deleteComment] Error Data:", errorData);
       alert(`댓글 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
+    // console.error("[deleteComment] Error:", error);
     alert("댓글 삭제 중 오류가 발생했습니다.");
   }
 }
-
-
-
 
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
@@ -424,28 +430,29 @@ async function DiaryDate(today) {
   }
 
   const diaryEntriesHTML = diaryEntries.map((entry, entryIdx) => {
-    const diaryId = entry._id;
+    const diaryId = entry.id;
     const diaryWriter = entry.user_id || "Unknown";
     const diaryContent = entry.content.replace(/\n/g, "<br/>");
   
     const commentsHTML = entry.comments && entry.comments.length > 0
-      ? entry.comments.map((comment, idx) => `
-          <div class="diary-comment-wrapper" id="comment-${diaryId}-${idx}">
-            <div class="diary-comment-info">
-              <span>no.${idx + 1} ${comment.user_id}</span>
-              <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
-            </div>
-            <div class="diary-comment-content">
-              <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
-              <div>${comment.content}</div>
-              <div class="diary-comment-edit-wrapper">
-                <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${idx}, document.querySelector('#comment-${diaryId}-${idx} .diary-comment-content div'))">수정</button>
-                <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${idx})">삭제</button>
-              </div>
-            </div>
-          </div>`
-        ).join("")
-      : "";
+  ? entry.comments.map((comment) => `
+      <div class="diary-comment-wrapper" id="comment-${comment.id}">
+        <div class="diary-comment-info">
+          <span>no.${comment.id} ${comment.user_id || comment.guest_user_id}</span>
+          <span id="diary-comment-writeAt">${new Date(comment.createdAt).toLocaleString()}</span>
+        </div>
+        <div class="diary-comment-content">
+          <img src="${comment.user_avatar}" class="comment-avatar" width="100" height="100" alt="User Avatar" />
+          <div>${comment.content}</div>
+          <div class="diary-comment-edit-wrapper">
+            <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${comment.id}, document.querySelector('#comment-${comment.id} .diary-comment-content div'))">수정</button>
+            <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${comment.id})">삭제</button>
+          </div>
+        </div>
+      </div>`
+    ).join("")
+  : "";
+
   
     return `
       <div class="diary-container" id="diary-${diaryId}">
