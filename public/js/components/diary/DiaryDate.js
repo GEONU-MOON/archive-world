@@ -116,7 +116,7 @@ async function deleteDiary(diaryId) {
       document.querySelector(`#diary-${diaryId}`).remove();
     } else {
       const errorData = await response.json();
-      console.error("[deleteDiary] Error Data:", errorData);
+      // console.error("[deleteDiary] Error Data:", errorData);
       alert(`다이어리 삭제 실패: ${errorData.error}`);
     }
   } catch (error) {
