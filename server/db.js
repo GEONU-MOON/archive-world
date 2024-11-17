@@ -10,10 +10,10 @@ const connectDB = async () => {
       database: process.env.DB_NAME,
     });
 
-    // console.log("MySQL에 성공적으로 연결되었습니다.");
+    console.log("MySQL에 성공적으로 연결되었습니다.");
     return connection;
   } catch (err) {
-    // console.error("MySQL 연결 오류:", err);
+    console.error("MySQL 연결 오류:", err);
     process.exit(1); // 연결 실패 시 프로세스 종료
   }
 };
