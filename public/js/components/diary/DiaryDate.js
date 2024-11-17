@@ -203,16 +203,11 @@ async function addComment(diaryId, formattedDate) {
     userId = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-id"]`).value.trim();
     password = document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-password"]`).value.trim();
 
-    // console.log("User ID:", userId);
-    // console.log("Password:", password);
-
     if (!userId || !password) {
       alert("아이디와 비밀번호를 입력해 주세요.");
       return;
     }
   }
-
-  // console.log("Comment Content:", commentContent);
 
   if (!commentContent) {
     alert("댓글을 입력해 주세요.");
@@ -229,37 +224,27 @@ async function addComment(diaryId, formattedDate) {
       body: JSON.stringify({ content: commentContent, user_id: userId, password: password }),
     });
 
-    // console.log("Request Headers:"
-    //   , {
-    //   "Content-Type": "application/json",
-    //   ...(isLoggedIn() && { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` })
-    // });
-    // console.log("Request Body:", { content: commentContent, user_id: userId, password: password });
-    // console.log("Response Status:", response.status);
-
     if (response.ok) {
-      commentInput.value = ""; // 입력 필드 초기화
+      commentInput.value = "";
       if (!isLoggedIn()) {
         document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-id"]`).value = "";
         document.querySelector(`#diary-${diaryId} .form-diary-comment input[name="user-password"]`).value = "";
       }
-      const updatedContent = await DiaryDate(formattedDate); // 최신 컴포넌트 가져오기
-      document.querySelector(".white-box").innerHTML = updatedContent; // 컴포넌트 업데이트
+      const updatedContent = await DiaryDate(formattedDate);
+      document.querySelector(".white-box").innerHTML = updatedContent;
     } else {
       const errorData = await response.json();
-      // console.log("Error Data:", errorData);
       alert(`댓글 작성 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("댓글 작성 중 오류가 발생했습니다:", error);
     alert("댓글 작성 중 오류가 발생했습니다. 다시 시도해 주세요.");
   }
 }
 
+
 async function saveEditedComment(diaryId, commentId) {
   const newContent = document.querySelector("#edit-comment-content").value;
   const password = document.querySelector("#comment-password")?.value || null;
-  // console.log("[saveEditedComment] Called with Diary ID:", diaryId, "Comment ID:", commentId, "New Content:", newContent);
 
   try {
     const response = await fetch(`/api/diary/${diaryId}/comment/${commentId}`, {
@@ -271,32 +256,27 @@ async function saveEditedComment(diaryId, commentId) {
       body: JSON.stringify({ content: newContent, password }),
     });
 
-    // console.log("[saveEditedComment] Response Status:", response.status);
-
     if (response.ok) {
-      // 댓글 내용 업데이트
-      document.querySelector(`#comment-${commentId} .diary-comment-content div`).innerHTML = newContent.replace(/\n/g, "<br>");
+      const updatedContent = await response.json();
+      const updatedComments = updatedContent.comments;
 
-      // 버튼 UI 복원
+      // 수정된 댓글 UI 업데이트
+      const commentElement = document.querySelector(`#comment-${commentId} .diary-comment-content div`);
+      commentElement.innerHTML = newContent.replace(/\n/g, "<br>");
+
+      // 버튼 복원
       const editWrapper = document.querySelector(`#comment-${commentId} .diary-comment-edit-wrapper`);
-      if (editWrapper) {
-        editWrapper.innerHTML = `
-          <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentId}, document.querySelector('#comment-${commentId} .diary-comment-content div'))">수정</button>
-          <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentId})">삭제</button>
-        `;
-        // console.log("[saveEditedComment] Buttons restored successfully.");
-      } else {
-        // console.error("[saveEditedComment] Edit wrapper element not found.");
-      }
+      editWrapper.innerHTML = `
+        <button id="btn-comment-edit" onclick="editComment('${diaryId}', ${commentId}, document.querySelector('#comment-${commentId} .diary-comment-content div'))">수정</button>
+        <button id="btn-comment-remove" onclick="deleteComment('${diaryId}', ${commentId})">삭제</button>
+      `;
 
       alert("댓글이 성공적으로 수정되었습니다.");
     } else {
       const errorData = await response.json();
-      // console.error("[saveEditedComment] Error Data:", errorData);
       alert(`댓글 수정 실패: ${errorData.error}`);
     }
   } catch (error) {
-    // console.error("[saveEditedComment] Error:", error);
     alert("댓글 수정 중 오류가 발생했습니다.");
   }
 }
@@ -373,9 +353,9 @@ async function deleteComment(diaryId, commentId) {
       const data = await response.json();
       const updatedComments = data.comments;
 
-      // 댓글 목록 업데이트
+      // 댓글 목록을 직접 업데이트
       const commentContainer = document.querySelector(`#diary-${diaryId} .diary-comment-container`);
-      const commentFormHTML = `
+      let commentsHTML = `
         <form class="form-diary-comment" onsubmit="event.preventDefault(); addComment('${diaryId}', '${new Date().toISOString().slice(0, 10).replace(/-/g, '')}');">
           <label>댓글</label>
           <input type="text" name="diary-comment" placeholder="댓글 입력" />
@@ -387,7 +367,8 @@ async function deleteComment(diaryId, commentId) {
         </form>
       `;
 
-      const commentsHTML = updatedComments.map((comment) => `
+      // 업데이트된 댓글 목록을 추가
+      commentsHTML += updatedComments.map((comment) => `
         <div class="diary-comment-wrapper" id="comment-${comment.id}">
           <div class="diary-comment-info">
             <span>no.${comment.commentIndex} ${comment.user_id || comment.guest_user_id}</span>
@@ -404,8 +385,8 @@ async function deleteComment(diaryId, commentId) {
         </div>
       `).join("");
 
-      // 댓글 입력 폼과 댓글 목록을 함께 업데이트
-      commentContainer.innerHTML = commentFormHTML + commentsHTML;
+      // DOM 업데이트
+      commentContainer.innerHTML = commentsHTML;
 
       alert("댓글이 성공적으로 삭제되었습니다.");
     } else {
@@ -416,6 +397,7 @@ async function deleteComment(diaryId, commentId) {
     alert("댓글 삭제 중 오류가 발생했습니다.");
   }
 }
+
 
 async function DiaryDate(today) {
   const date = new Date(today.slice(0, 4), parseInt(today.slice(4, 6)) - 1, today.slice(6, 8));
