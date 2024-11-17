@@ -33,29 +33,32 @@ async function renderVisitorSays() {
     const visitorSaysHTML = visitorSays
       .map(
         (item) => `
-        <div class="visitor-says-item" id="visitor-item-${item._id}">
+        <div class="visitor-says-item" id="visitor-item-${item.id}">
           <div class="visitor-info">
             <span>${item.writer}</span>
             <span class="visitor-writeAt">${new Date(item.createdAt).toLocaleString()}</span>
           </div>
           <div class="visitor-says-content">
             <img src="${item.writer_avatar}" width="100" height="100" alt="Visitor Avatar" />
-            <p id="visitor-content-${item._id}" style="white-space: pre-wrap;">${item.content}</p>
+            <p id="visitor-content-${item.id}" 
+              data-writer="${item.writer}" 
+              data-writer-avatar="${item.writer_avatar}" 
+              style="white-space: pre-wrap;">${item.content}</p>
           </div>
           <div class="visitor-actions">
-            <button onclick="showEditForm('${item._id}')">수정</button>
-            <button onclick="showDeleteForm('${item._id}')">삭제</button>
+            <button onclick="showEditForm('${item.id}')">수정</button>
+            <button onclick="showDeleteForm('${item.id}')">삭제</button>
           </div>
-          <div class="edit-password-form" id="edit-form-${item._id}" style="display: none;">
-            <textarea id="edit-content-${item._id}"></textarea>
-            <input type="password" id="edit-password-${item._id}" placeholder="비밀번호 입력" required />
-            <button onclick="saveEditVisitorSay('${item._id}')">저장</button>
-            <button onclick="cancelEdit('${item._id}')">취소</button>
+          <div class="edit-password-form" id="edit-form-${item.id}" style="display: none;">
+            <textarea id="edit-content-${item.id}"></textarea>
+            <input type="password" id="edit-password-${item.id}" placeholder="비밀번호 입력" required />
+            <button onclick="saveEditVisitorSay('${item.id}')">저장</button>
+            <button onclick="cancelEdit('${item.id}')">취소</button>
           </div>
-          <div class="delete-password-form" id="delete-form-${item._id}" style="display: none;">
-            <input type="password" id="delete-password-${item._id}" placeholder="비밀번호 입력" required />
-            <button onclick="deleteVisitorSay('${item._id}')">삭제 확인</button>
-            <button onclick="cancelDelete('${item._id}')">취소</button>
+          <div class="delete-password-form" id="delete-form-${item.id}" style="display: none;">
+            <input type="password" id="delete-password-${item.id}" placeholder="비밀번호 입력" required />
+            <button onclick="deleteVisitorSay('${item.id}')">삭제 확인</button>
+            <button onclick="cancelDelete('${item.id}')">취소</button>
           </div>
         </div>  
       `
@@ -64,16 +67,16 @@ async function renderVisitorSays() {
 
     document.querySelector(".visitor-says-container").innerHTML = visitorSaysHTML;
   } catch (error) {
-    console.error("Error loading visitor data:", error);
+    // console.error("Error loading visitor data:", error);
   }
 }
 
-// 수정된 showEditForm 함수
 function showEditForm(id) {
   const content = document.getElementById(`visitor-content-${id}`).textContent;
   document.getElementById(`edit-content-${id}`).value = content;
   document.getElementById(`edit-form-${id}`).style.display = "block";
 }
+
 
 function showDeleteForm(id) {
   document.getElementById(`delete-form-${id}`).style.display = "block";
@@ -91,30 +94,42 @@ function saveEditVisitorSay(id) {
   const newContent = document.getElementById(`edit-content-${id}`).value;
   const password = document.getElementById(`edit-password-${id}`).value;
 
+  const writer = document.getElementById(`visitor-content-${id}`).dataset.writer;
+  const writerAvatar = document.getElementById(`visitor-content-${id}`).dataset.writerAvatar;
+
+  // console.log(`Sending update request with writer: ${writer}, avatar: ${writerAvatar}, content: ${newContent}`);
+
   fetch(`/visitors/visitor-update/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ content: newContent, currentPassword: password }),
+    body: JSON.stringify({
+      writer: writer,
+      writer_avatar: writerAvatar,
+      content: newContent,
+      currentPassword: password,
+    }),
   })
-    .then(response => {
+    .then((response) => {
       if (!response.ok) {
         throw new Error("Failed to update visitor");
       }
       return response.json();
     })
-    .then(data => {
+    .then(() => {
       renderVisitorSays(); // 변경 후 전체 리스트 다시 렌더링
     })
-    .catch(error => {
-      console.error("Error updating visitor:", error);
+    .catch((error) => {
+      // console.error("Error updating visitor:", error);
       alert("비밀번호가 올바르지 않습니다.");
     });
 }
 
 function deleteVisitorSay(id) {
   const password = document.getElementById(`delete-password-${id}`).value;
+
+  // console.log(`Sending password for delete: ${password}`);
 
   if (!confirm("정말 삭제하시겠습니까?")) return;
 
@@ -135,7 +150,7 @@ function deleteVisitorSay(id) {
       document.getElementById(`visitor-item-${id}`).remove(); // 삭제된 항목만 제거
     })
     .catch(error => {
-      console.error("Error deleting visitor:", error);
+      // console.error("Error deleting visitor:", error);
       alert("비밀번호가 올바르지 않습니다.");
     });
 }
@@ -175,7 +190,7 @@ function postVisitorSay(event) {
       document.getElementById("input-visitor-say").value = "";
     })
     .catch(error => {
-      console.error("Error adding visitor:", error);
+      // console.error("Error adding visitor:", error);
     });
 }
 

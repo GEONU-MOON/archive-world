@@ -16,7 +16,7 @@ async function fetchVisitorCount() {
     document.getElementById("visitor-today").textContent = ` ${data.todayCount} `;
     document.getElementById("visitor-total").textContent = `Total ${data.totalCount}`;
   } catch (error) {
-    // console.error("Error fetching click counts:", error);
+    console.error("Error fetching click counts:", error);
   }
 }
 
@@ -27,12 +27,12 @@ async function incrementVisitorCount() {
     });
     if (!response.ok) throw new Error("Failed to increment click count");
 
-
     await fetchVisitorCount();
   } catch (error) {
-    // console.error("Error incrementing click count:", error);
+    console.error("Error incrementing click count:", error);
   }
 }
+
 
 function getKSTDate() {
   const now = new Date();

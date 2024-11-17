@@ -1,17 +1,21 @@
 require("dotenv").config();
-const mongoose = require("mongoose");
-const mongoURI = process.env.DB_URI;
+const mysql = require("mysql2/promise");
 
-// MongoDB 연결
 const connectDB = async () => {
   try {
-    await mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
-    console.log("MongoDB에 연결되었습니다.");
+    const connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    });
+
+    // console.log("MySQL에 성공적으로 연결되었습니다.");
+    return connection;
   } catch (err) {
-    console.error("MongoDB 연결 오류:", err);
+    // console.error("MySQL 연결 오류:", err);
     process.exit(1); // 연결 실패 시 프로세스 종료
   }
 };
 
-// 이 함수를 다른 파일에서 사용할 수 있도록 export
 module.exports = connectDB;

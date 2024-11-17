@@ -1,31 +1,19 @@
-const mongoose = require("mongoose");
+const connectDB = require("../db");
 
-const visitorSchema = new mongoose.Schema({
-  visitor_no: {
-    type: Number,
-    required: true,
-  },
-  writer: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  writer_avatar: {
-    type: String,
-  },
-  content: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+const getAllVisitors = async () => {
+  const connection = await connectDB();
+  const [rows] = await connection.query("SELECT * FROM Visitor ORDER BY createdAt DESC");
+  await connection.end();
+  return rows;
+};
 
-const Visitor = mongoose.model("Visitor", visitorSchema);
+const createVisitor = async (visitor_no, writer, password, writer_avatar, content) => {
+  const connection = await connectDB();
+  await connection.query(
+    "INSERT INTO Visitor (visitor_no, writer, password, writer_avatar, content) VALUES (?, ?, ?, ?, ?)",
+    [visitor_no, writer, password, writer_avatar, content]
+  );
+  await connection.end();
+};
 
-module.exports = Visitor;
+module.exports = { getAllVisitors, createVisitor };

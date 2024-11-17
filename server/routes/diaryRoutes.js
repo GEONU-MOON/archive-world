@@ -1,266 +1,224 @@
 const express = require("express");
 const router = express.Router();
-const Diary = require("../models/Diary");
-const User = require("../models/User"); // User 모델 가져오기
+const connectDB = require("../db");
 const { findUser } = require("../util/util");
-const bcrypt = require("bcrypt");
 
-
-// 다이어리 작성 엔드포인트
+// 다이어리 작성
 router.post("/write", async (req, res) => {
   try {
     const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
+    if (!currentUser) return res.status(403).json({ error: "Unauthorized user" });
 
     const { content } = req.body;
-    const newDiary = new Diary({
-      user_id: currentUser.user_id,
-      date: new Date(),
-      content,
-    });
+    const user_id = currentUser.id;
 
-    await newDiary.save();
+    const connection = await connectDB();
+    await connection.query("INSERT INTO Diary (user_id, date, content) VALUES (?, NOW(), ?)", [user_id, content]);
     res.status(201).json({ message: "Diary entry created successfully" });
   } catch (error) {
+    console.error("Error creating diary entry:", error);
     res.status(500).json({ error: "Failed to create diary entry" });
   }
 });
 
-// 특정 날짜의 다이어리 및 댓글 조회 엔드포인트
+// 특정 날짜의 다이어리 조회
 router.get("/:year/:month/:day", async (req, res) => {
   try {
     const { year, month, day } = req.params;
-    const startDate = new Date(year, month - 1, day);
-    const endDate = new Date(year, month - 1, parseInt(day) + 1);
+    const startDate = `${year}-${month}-${day}`;
+    const endDate = `${year}-${month}-${parseInt(day) + 1}`;
 
-    // 다이어리 찾기
-    const diaries = await Diary.find({
-      date: {
-        $gte: startDate,
-        $lt: endDate,
-      },
-    }).lean(); // lean()으로 plain object로 변환
+    const connection = await connectDB();
+    const [diaries] = await connection.query("SELECT * FROM Diary WHERE date >= ? AND date < ?", [startDate, endDate]);
 
-    // 각 다이어리의 댓글에 대해 user_avatar를 조회하여 추가
-    for (let diary of diaries) {
-      for (let comment of diary.comments) {
-        const user = await User.findOne({ user_id: comment.user_id }).lean();
-        comment.user_avatar = user ? user.user_avatar : "/resource/images/profile.png"; // user_avatar를 추가
+    if (!diaries.length) return res.status(404).json({ error: "No diary entries found" });
+
+    for (const diary of diaries) {
+      const [author] = await connection.query("SELECT user_id FROM Users WHERE id = ?", [diary.user_id]);
+      diary.user_id = author.length ? author[0].user_id : "Unknown";
+
+      const [comments] = await connection.query(
+        `SELECT C.id, C.content, C.commentIndex, C.user_id, C.guest_user_id, C.createdAt, U.user_id, U.user_avatar
+         FROM DiaryComments C
+         LEFT JOIN Users U ON C.user_id = U.id
+         WHERE C.diary_id = ?
+         ORDER BY C.commentIndex`,
+        [diary.id]
+      );
+
+      for (const comment of comments) {
+        comment.user_id = comment.user_id || comment.guest_user_id;
+        comment.user_avatar = comment.user_avatar || "/resource/images/profile.png";
       }
+
+      diary.comments = comments;
     }
 
     res.status(200).json(diaries);
   } catch (error) {
     console.error("Error fetching diary entry:", error);
-    res.status(500).json({ error: "Failed to fetch diary entry", details: error.message });
+    res.status(500).json({ error: "Failed to fetch diary entry" });
   }
 });
 
-// 다이어리 수정 엔드포인트
+// 다이어리 수정
 router.put("/:diaryId/edit", async (req, res) => {
   try {
     const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
+    if (!currentUser) return res.status(403).json({ error: "Unauthorized user" });
 
     const { diaryId } = req.params;
     const { content } = req.body;
 
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
-    }
+    const connection = await connectDB();
+    const [diary] = await connection.query("SELECT * FROM Diary WHERE id = ?", [diaryId]);
 
-    if (diary.user_id !== currentUser.user_id) {
-      return res.status(403).json({ error: "You are not authorized to edit this diary" });
-    }
+    if (!diary.length) return res.status(404).json({ error: "Diary entry not found" });
+    if (diary[0].user_id !== currentUser.id) return res.status(403).json({ error: "Unauthorized user" });
 
-    diary.content = content;
-    diary.updatedAt = new Date();
-    await diary.save();
-
-    res.status(200).json({ message: "Diary entry updated successfully", updatedAt: diary.updatedAt });
+    await connection.query("UPDATE Diary SET content = ?, updatedAt = NOW() WHERE id = ?", [content, diaryId]);
+    res.status(200).json({ message: "Diary entry updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update diary entry" });
   }
 });
 
-// 다이어리 삭제 엔드포인트
+// 다이어리 삭제
 router.delete("/:diaryId/delete", async (req, res) => {
   try {
     const currentUser = await findUser(req.headers.authorization);
-    if (!currentUser) {
-      return res.status(403).json({ error: "Unauthorized user" });
-    }
+    if (!currentUser) return res.status(403).json({ error: "Unauthorized user" });
 
     const { diaryId } = req.params;
+    const connection = await connectDB();
 
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
-    }
+    const [diary] = await connection.query("SELECT * FROM Diary WHERE id = ?", [diaryId]);
+    if (!diary.length) return res.status(404).json({ error: "Diary entry not found" });
 
-    if (diary.user_id !== currentUser.user_id) {
-      return res.status(403).json({ error: "You are not authorized to delete this diary" });
-    }
+    if (diary[0].user_id !== currentUser.id) return res.status(403).json({ error: "Unauthorized user" });
 
-    await Diary.findByIdAndDelete(diaryId);
+    await connection.query("DELETE FROM Diary WHERE id = ?", [diaryId]);
     res.status(200).json({ message: "Diary entry deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete diary entry" });
   }
 });
 
-// 댓글 조회 엔드포인트
-router.get("/:diaryId/comments", async (req, res) => {
-  try {
-    const { diaryId } = req.params;
-
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
-    }
-
-    res.status(200).json(diary.comments);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch comments" });
-  }
-});
-
-// 댓글 작성 엔드포인트
+// 댓글 추가
 router.post("/:diaryId/comment", async (req, res) => {
   try {
-    const authorization = req.headers.authorization;
-    let currentUser = null;
-
-    if (authorization) {
-      currentUser = await findUser(authorization);
-      if (!currentUser) {
-        return res.status(403).json({ error: "Unauthorized user" });
-      }
-    }
-
     const { diaryId } = req.params;
     const { content, user_id, password } = req.body;
+    const currentUser = req.headers.authorization ? await findUser(req.headers.authorization) : null;
 
-    if (!content) {
-      return res.status(400).json({ error: "Content is required" });
-    }
+    const connection = await connectDB();
 
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
-    }
+    const [maxIndexResult] = await connection.query(
+      "SELECT COALESCE(MAX(commentIndex), 0) AS maxIndex FROM DiaryComments WHERE diary_id = ?",
+      [diaryId]
+    );
+    const nextIndex = maxIndexResult[0].maxIndex + 1;
 
-    // 새로운 댓글 생성 (비회원일 경우 평문 비밀번호 저장)
-    const newComment = {
-      user_id: currentUser ? currentUser.user_id : user_id,
-      content,
-      createdAt: new Date(),
-      password: currentUser ? undefined : password, // 평문 비밀번호 저장
-    };
+    await connection.query(
+      "INSERT INTO DiaryComments (diary_id, user_id, guest_user_id, content, password, commentIndex, createdAt) VALUES (?, ?, ?, ?, ?, ?, NOW())",
+      [diaryId, currentUser ? currentUser.id : null, currentUser ? null : user_id, content, currentUser ? null : password, nextIndex]
+    );
 
-    diary.comments.push(newComment);
-    await diary.save();
-
-    res.status(201).json({ message: "Comment added successfully", comment: newComment });
+    res.status(201).json({ message: "Comment added successfully" });
   } catch (error) {
-    // console.error("Error adding comment:", error);
     res.status(500).json({ error: "Failed to add comment" });
   }
 });
 
-// 댓글 수정 엔드포인트
-router.put("/:diaryId/comment/:commentIndex", async (req, res) => {
+// 댓글 삭제
+router.delete("/:diaryId/comment/:commentId", async (req, res) => {
   try {
-    const { diaryId, commentIndex } = req.params;
-    const { content, password } = req.body;
-
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
-    }
-
-    const comment = diary.comments[commentIndex];
-    if (!comment) {
-      return res.status(404).json({ error: "Comment not found" });
-    }
-
-    if (!req.headers.authorization) {
-      // 비회원 비밀번호 검증 (평문 비교)
-      if (password !== comment.password) {
-        return res.status(403).json({ error: "Incorrect password" });
-      }
-    } else {
-      // 회원 ID 검증
-      const currentUser = await findUser(req.headers.authorization);
-      if (!currentUser || currentUser.user_id !== comment.user_id) {
-        return res.status(403).json({ error: "Unauthorized user" });
-      }
-    }
-
-    comment.content = content;
-    comment.updatedAt = new Date();
-    await diary.save();
-
-    res.status(200).json({ message: "Comment updated successfully" });
-  } catch (error) {
-    console.error("Error updating comment:", error);
-    res.status(500).json({ error: "Failed to update comment" });
-  }
-});
-
-// 댓글 삭제 엔드포인트
-router.delete("/:diaryId/comment/:commentIndex", async (req, res) => {
-  try {
-    const { diaryId, commentIndex } = req.params;
+    const { diaryId, commentId } = req.params;
     const { password } = req.body;
+    const connection = await connectDB();
 
-    const diary = await Diary.findById(diaryId);
-    if (!diary) {
-      return res.status(404).json({ error: "Diary entry not found" });
+    // 댓글 조회
+    const [comment] = await connection.query("SELECT * FROM DiaryComments WHERE id = ?", [commentId]);
+    if (!comment.length) return res.status(404).json({ error: "Comment not found" });
+
+    // 비회원의 경우 비밀번호 검증
+    if (!comment[0].user_id && password !== comment[0].password) {
+      return res.status(403).json({ error: "Incorrect password" });
     }
 
-    const comment = diary.comments[commentIndex];
-    if (!comment) {
-      return res.status(404).json({ error: "Comment not found" });
+    // 댓글 삭제
+    await connection.query("DELETE FROM DiaryComments WHERE id = ?", [commentId]);
+
+    // 인덱스 초기화 및 재정렬
+    await connection.query("SET @index := 0;");
+    await connection.query(
+      "UPDATE DiaryComments SET commentIndex = (@index := @index + 1) WHERE diary_id = ? ORDER BY commentIndex;",
+      [diaryId]
+    );
+
+    // 재정렬된 댓글 목록 반환
+    const [updatedComments] = await connection.query(
+      `SELECT C.id, C.content, C.commentIndex, C.user_id, C.guest_user_id, C.createdAt, U.user_id, U.user_avatar
+       FROM DiaryComments C
+       LEFT JOIN Users U ON C.user_id = U.id
+       WHERE C.diary_id = ?
+       ORDER BY C.commentIndex`,
+      [diaryId]
+    );
+
+    // 유저 아바타 처리
+    for (const comment of updatedComments) {
+      comment.user_id = comment.user_id || comment.guest_user_id;
+      comment.user_avatar = comment.user_avatar || "/resource/images/profile.png";
     }
 
-    if (!req.headers.authorization) {
-      // 비회원 비밀번호 검증 (평문 비교)
-      if (password !== comment.password) {
-        return res.status(403).json({ error: "Incorrect password" });
-      }
-    } else {
-      // 회원 ID 검증
-      const currentUser = await findUser(req.headers.authorization);
-      if (!currentUser || currentUser.user_id !== comment.user_id) {
-        return res.status(403).json({ error: "Unauthorized user" });
-      }
-    }
-
-    diary.comments.splice(commentIndex, 1);
-    await diary.save();
-
-    res.status(200).json({ message: "Comment deleted successfully" });
+    res.status(200).json({ message: "Comment deleted successfully", comments: updatedComments });
   } catch (error) {
     console.error("Error deleting comment:", error);
     res.status(500).json({ error: "Failed to delete comment" });
   }
 });
 
+// 댓글 수정
+router.put("/:diaryId/comment/:commentId", async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { content, password } = req.body;
+    const connection = await connectDB();
+
+    const [comment] = await connection.query("SELECT * FROM DiaryComments WHERE id = ?", [commentId]);
+    if (!comment.length) return res.status(404).json({ error: "Comment not found" });
+
+    if (!comment[0].user_id && password !== comment[0].password) {
+      return res.status(403).json({ error: "Incorrect password" });
+    }
+
+    await connection.query("UPDATE DiaryComments SET content = ?, updatedAt = NOW() WHERE id = ?", [content, commentId]);
+    res.status(200).json({ message: "Comment updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update comment" });
+  }
+});
 
 router.get("/all", async (req, res) => {
   try {
-    const diaries = await Diary.find({}); // 모든 다이어리 항목을 가져옵니다
+    const connection = await connectDB();
+    // createdAt을 기준으로 정렬하여 최신 3개 가져오기
+    const [diaries] = await connection.query("SELECT * FROM Diary ORDER BY createdAt DESC LIMIT 3");
+
+    // 유저 아이디를 추가
+    for (const diary of diaries) {
+      const [user] = await connection.query("SELECT user_id FROM Users WHERE id = ?", [diary.user_id]);
+      diary.user_id = user.length ? user[0].user_id : "Unknown";
+    }
+
     res.status(200).json(diaries);
   } catch (error) {
+    console.error("Error fetching diary entries:", error);
     res.status(500).json({ error: "Failed to fetch diary entries" });
   }
 });
+
 
 
 module.exports = router;

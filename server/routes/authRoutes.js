@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const connectDB = require("../db");
 require("dotenv").config();
 
 // 로그인 엔드포인트
@@ -9,7 +9,9 @@ router.post("/login", async (req, res) => {
   const { input_id, input_pw } = req.body;
 
   try {
-    const user = await User.findOne({ user_id: input_id });
+    const connection = await connectDB();
+    const [userRows] = await connection.query("SELECT * FROM Users WHERE user_id = ?", [input_id]);
+    const user = userRows[0];
 
     if (!user) {
       return res.status(404).send({ error: "User not found" });
@@ -21,16 +23,15 @@ router.post("/login", async (req, res) => {
 
     // 비밀번호 일치 시 액세스 토큰 및 리프레시 토큰 발급
     const accessToken = jwt.sign({ userId: user.user_id, userAvatar: user.user_avatar }, process.env.JWT_SECRET, {
-      expiresIn: "1h", // 액세스 토큰 유효 시간
+      expiresIn: "1h",
     });
 
     const refreshToken = jwt.sign({ userId: user.user_id }, process.env.REFRESH_SECRET, {
-      expiresIn: "7d", // 리프레시 토큰 유효 시간
+      expiresIn: "7d",
     });
 
-    // 리프레시 토큰을 데이터베이스에 저장
-    user.refreshToken = refreshToken;
-    await user.save();
+    // 리프레시 토큰 업데이트
+    await connection.query("UPDATE Users SET refreshToken = ? WHERE user_id = ?", [refreshToken, user.user_id]);
 
     // 리프레시 토큰을 HTTP-Only 쿠키에 저장
     res.cookie("refreshToken", refreshToken, {
@@ -40,6 +41,7 @@ router.post("/login", async (req, res) => {
     });
 
     res.status(200).json({ message: "Login success", accessToken });
+    await connection.end();
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -47,7 +49,7 @@ router.post("/login", async (req, res) => {
 
 // 토큰 갱신 엔드포인트
 router.post("/token", async (req, res) => {
-  const refreshToken = req.cookies.refreshToken; // 쿠키에서 리프레시 토큰 가져오기
+  const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
     return res.status(403).send({ error: "Access denied, token missing!" });
@@ -55,40 +57,36 @@ router.post("/token", async (req, res) => {
 
   try {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
-    const user = await User.findOne({ user_id: decoded.userId });
+    const connection = await connectDB();
+    const [userRows] = await connection.query("SELECT * FROM Users WHERE user_id = ?", [decoded.userId]);
+    const user = userRows[0];
 
     if (!user || user.refreshToken !== refreshToken) {
       return res.status(403).send({ error: "Invalid refresh token" });
     }
 
-    // 새로운 액세스 토큰 발급
     const newAccessToken = jwt.sign({ userId: user.user_id, userAvatar: user.user_avatar }, process.env.JWT_SECRET, {
-      expiresIn: "1h", // 새로운 액세스 토큰 유효 시간
+      expiresIn: "1h",
     });
 
     res.status(200).json({ accessToken: newAccessToken });
+    await connection.end();
   } catch (error) {
     res.status(403).send({ error: "Invalid refresh token" });
   }
 });
 
+// 로그아웃 엔드포인트
 router.post("/logout", async (req, res) => {
   try {
-    // 쿠키에서 리프레시 토큰 가져오기
     const refreshToken = req.cookies.refreshToken;
 
     if (refreshToken) {
-      // 리프레시 토큰이 데이터베이스에 존재하면 해당 사용자 정보 가져오기
-      const user = await User.findOne({ refreshToken });
-
-      if (user) {
-        // 데이터베이스에서 리프레시 토큰 제거
-        user.refreshToken = null; // 리프레시 토큰 필드를 null로 설정
-        await user.save();
-      }
+      const connection = await connectDB();
+      await connection.query("UPDATE Users SET refreshToken = NULL WHERE refreshToken = ?", [refreshToken]);
+      await connection.end();
     }
 
-    // 클라이언트 쿠키에서 리프레시 토큰 삭제
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
