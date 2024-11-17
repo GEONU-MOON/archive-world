@@ -203,4 +203,23 @@ router.put("/:photoId/comment/:commentId", async (req, res) => {
   }
 });
 
+router.get("/all", async (req, res) => {
+  try {
+    const connection = await connectDB();
+    const [photos] = await connection.query("SELECT * FROM Photos ORDER BY uploadedAt DESC LIMIT 3");
+
+    // 유저 정보를 추가
+    for (const photo of photos) {
+      const [user] = await connection.query("SELECT user_id FROM Users WHERE id = ?", [photo.user_id]);
+      photo.author_name = user.length ? user[0].user_id : "Unknown";
+    }
+
+    res.status(200).json(photos);
+  } catch (error) {
+    console.error("Error fetching photos:", error);
+    res.status(500).json({ error: "Failed to fetch photos" });
+  }
+});
+
+
 module.exports = router;

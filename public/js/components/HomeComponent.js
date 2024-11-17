@@ -41,17 +41,18 @@ async function HomeComponent() {
   // })();
 
   const diaryHtml = diaryContents
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 3)
-    .map(
-      item => `
-      <div class="diary-item">
-        ${truncateContent(item.content)}
-        <div class="diary-author">${item.user_id}</div>
-      </div>
-    `
-    )
-    .join("");
+  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // createdAt으로 정렬
+  .slice(0, 3)
+  .map(
+    item => `
+    <div class="diary-item">
+      ${truncateContent(item.content)}
+      <div class="diary-author">${item.user_id}</div>
+    </div>
+  `
+  )
+  .join("");
+
 
   const photosHtml = photos
     .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))

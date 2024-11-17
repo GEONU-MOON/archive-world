@@ -200,4 +200,25 @@ router.put("/:diaryId/comment/:commentId", async (req, res) => {
   }
 });
 
+router.get("/all", async (req, res) => {
+  try {
+    const connection = await connectDB();
+    // createdAt을 기준으로 정렬하여 최신 3개 가져오기
+    const [diaries] = await connection.query("SELECT * FROM Diary ORDER BY createdAt DESC LIMIT 3");
+
+    // 유저 아이디를 추가
+    for (const diary of diaries) {
+      const [user] = await connection.query("SELECT user_id FROM Users WHERE id = ?", [diary.user_id]);
+      diary.user_id = user.length ? user[0].user_id : "Unknown";
+    }
+
+    res.status(200).json(diaries);
+  } catch (error) {
+    console.error("Error fetching diary entries:", error);
+    res.status(500).json({ error: "Failed to fetch diary entries" });
+  }
+});
+
+
+
 module.exports = router;
