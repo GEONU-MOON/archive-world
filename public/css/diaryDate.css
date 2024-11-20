@@ -73,14 +73,10 @@ td#month:hover {
   background-color: white;
   line-height: 20px;
   text-align: center;
-  border-radius: 7px;
+  border: none;
 }
 
-#btn-prev-month:hover,
-#btn-next-month:hover {
-  background-color: black;
-  color: white;
-}
+
 
 .diary-post {
   display: flex;
