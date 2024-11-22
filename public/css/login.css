@@ -49,18 +49,23 @@
   border-radius: 5px;
 }
 
-#loginForm button {
-  width: 30%;
-  align-self: last baseline;
+#loginForm .button-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+#loginForm .button-group button {
+  width: 45%;
   padding: 10px;
   border: none;
   border-radius: 5px;
   background-color: #b0c4de;
   color: black;
   cursor: pointer;
+  text-align: center;
 }
 
-#loginForm button:hover {
+#loginForm .button-group button:hover {
   background-color: #a2b5cd;
   color: white;
 }
