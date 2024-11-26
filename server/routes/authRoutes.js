@@ -4,6 +4,30 @@ const jwt = require("jsonwebtoken");
 const connectDB = require("../db");
 require("dotenv").config();
 
+// 회원가입 엔드포인트
+router.post("/register", async (req, res) => {
+  const { user_id, user_pw } = req.body;
+
+  try {
+    const connection = await connectDB();
+
+    // 사용자 ID 중복 확인
+    const [existingUser] = await connection.query("SELECT * FROM Users WHERE user_id = ?", [user_id]);
+    if (existingUser.length > 0) {
+      await connection.end();
+      return res.status(409).send({ error: "User ID already exists" });
+    }
+
+    // 새로운 사용자 등록
+    await connection.query("INSERT INTO Users (user_id, user_pw) VALUES (?, ?)", [user_id, user_pw]);
+    await connection.end();
+
+    res.status(201).send({ message: "User registered successfully" });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 // 로그인 엔드포인트
 router.post("/login", async (req, res) => {
   const { input_id, input_pw } = req.body;
