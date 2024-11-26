@@ -46,7 +46,10 @@ function loginForm() {
         <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요." required />
         <label for="password">비밀번호</label>
         <input type="password" id="password" name="password" placeholder="비밀번호를 입력해주세요." required />
-        <button type="submit">구경하러 가기</button>
+        <div class="button-group">
+            <button type="submit">구경하러 가기</button>
+            <button type="button" onclick="window.location.href='/signup'">회원가입</button>
+        </div>
     </form>
   `;
 

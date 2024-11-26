@@ -54,6 +54,13 @@ const routes = [
     },
   },
   {
+    path: "/signup",
+    view: async () => {
+      await loadComponent("/js/components/signupForm.js");
+      return signupForm();
+    },
+  },
+  {
     path: "/diary/post",
     view: async () => {
       await loadComponent("/js/components/diary/DiaryForm.js");
@@ -113,9 +120,14 @@ const router = async () => {
   const params = getParams(matchRoute);
   const view = await matchRoute.route.view(params);
 
-  const contentContainer = matchRoute.route.path === "/login" ? document.querySelector("#app") : document.querySelector(".white-box");
+  // 로그인과 회원가입 경로는 #app 요소에 렌더링
+  const contentContainer = ["/login", "/signup"].includes(matchRoute.route.path)
+    ? document.querySelector("#app")
+    : document.querySelector(".white-box");
+
   contentContainer.innerHTML = view;
 };
+
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 

@@ -1,4 +1,4 @@
-#loginForm {
+#signupForm {
   display: flex;
   flex-direction: column;
   max-width: 400px;
@@ -9,25 +9,25 @@
   background-color: #e2ded8;
 }
 
-#loginForm .header {
+#signupForm .header {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
-#loginForm img {
+#signupForm img {
   width: 40%;
   height: auto;
   margin-right: 20px;
 }
 
-#loginForm h2 {
+#signupForm h2 {
   text-align: center;
   color: black;
   font-family: "Arial", sans-serif;
 }
 
-#loginForm label {
+#signupForm label {
   margin-bottom: 10px;
   margin-top: 10px;
   font-weight: bold;
@@ -35,26 +35,26 @@
   text-align: start;
 }
 
-#loginForm label::after {
+#signupForm label::after {
   content: " *";
   color: rgb(184, 13, 13);
   right: -15px;
   top: 0;
 }
 
-#loginForm input {
+#signupForm input {
   margin-bottom: 15px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-#loginForm .button-group {
+#signupForm .button-group {
   display: flex;
   justify-content: space-between;
 }
 
-#loginForm .button-group button {
+#signupForm .button-group button {
   width: 45%;
   padding: 10px;
   border: none;
@@ -65,7 +65,7 @@
   text-align: center;
 }
 
-#loginForm .button-group button:hover {
+#signupForm .button-group button:hover {
   background-color: #a2b5cd;
   color: white;
 }
